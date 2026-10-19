@@ -12,6 +12,7 @@ import { DropOverlay, useFileDrop } from "./components/DropZone";
 import { HelpDialog } from "./components/HelpDialog";
 import { Organizer } from "./components/Organizer";
 import { Ribbon } from "./components/Ribbon";
+import { Root, textStep, type ColorScheme } from "./components/Root";
 import { SealDialog } from "./components/SealDialog";
 import { SearchBar } from "./components/SearchBar";
 import { SettingsDialog } from "./components/SettingsDialog";
@@ -26,6 +27,7 @@ import { Tips } from "./components/Tips";
 import { Toasts } from "./components/Toasts";
 import { Viewer } from "./components/Viewer";
 import { openRequested, settleAll } from "./lib/actions";
+import { host } from "./host";
 import { api } from "./lib/api";
 import { onCopy, onPaste } from "./lib/clipboard";
 import { runKey } from "./lib/commands";
@@ -46,7 +48,17 @@ async function loadAuthor() {
   }
 }
 
-export default function App() {
+export interface AppProps {
+  colorScheme?: ColorScheme;
+  className?: string;
+  /**
+   * Inside somebody else's page (the npm package): the app leaves the page's
+   * title and root font size alone, and sizes itself by its parent.
+   */
+  embedded?: boolean;
+}
+
+export default function App({ colorScheme, className, embedded = false }: AppProps = {}) {
   const dialog = useStore((s) => s.dialog);
   const d = useStore(activeDoc);
   const panel = useStore((s) => s.panel);
@@ -78,6 +90,15 @@ export default function App() {
         .catch((e) => warn("open-requested", e));
     }
 
+    // Leaving the page with unsaved changes: the browser asks first (the
+    // desktop window does the same below, with its own dialog).
+    const onUnload = (e: BeforeUnloadEvent) => {
+      if (!useStore.getState().docs.some((x) => x.dirty && !x.readOnly)) return;
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    if (host().kind === "web") window.addEventListener("beforeunload", onUnload);
+
     // Closing the window with unsaved changes asks about each tab first.
     let unclose: (() => void) | undefined;
     if (isTauri()) {
@@ -99,28 +120,33 @@ export default function App() {
       unlisten?.();
       unclose?.();
       window.removeEventListener("keydown", onKey);
+      window.removeEventListener("beforeunload", onUnload);
       document.removeEventListener("copy", onCopy);
       document.removeEventListener("paste", onPaste);
     };
   }, []);
 
-  // 文字を大きく (index.css): the root font size scales the whole UI.
+  // 文字を大きく (desktop.css): the root font size scales the whole UI. In
+  // the package the page's is not ours to change: the app's own rem is
+  // scaled instead (web.css, `data-text` on Root).
   useEffect(() => {
+    if (embedded) return;
     const root = document.documentElement;
-    if (textSize >= 1.3) root.dataset.text = "larger";
-    else if (textSize >= 1.15) root.dataset.text = "large";
+    const step = textStep(textSize);
+    if (step) root.dataset.text = step;
     else delete root.dataset.text;
-  }, [textSize]);
+  }, [textSize, embedded]);
 
   // The window's title: the file, with a dot when unsaved (Windows shows it).
   useEffect(() => {
+    if (embedded) return;
     const title = d ? `${d.dirty ? "● " : ""}${d.name} — PDF One` : "PDF One";
     document.title = title;
     if (isTauri()) void getCurrentWindow().setTitle(title).catch(() => {});
-  }, [d?.name, d?.dirty, d]);
+  }, [d?.name, d?.dirty, d, embedded]);
 
   return (
-    <div className="flex h-full flex-col">
+    <Root colorScheme={colorScheme} className={className}>
       <TabBar />
       {d ? (
         <>
@@ -155,6 +181,6 @@ export default function App() {
       <ContextMenu />
       {dropping && <DropOverlay />}
       <Toasts />
-    </div>
+    </Root>
   );
 }

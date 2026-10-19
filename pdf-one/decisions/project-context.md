@@ -36,3 +36,4 @@ AI と人が実装前に確認する **現在の前提**。機能要件、ロー
 - Security §1 の CSP：`connect-src` に `'self'` を足した（[ADR-0001](adr-0001-csp-connect-self.md)）
 - UI §1 のテーマ：OS に合わせてライト / ダーク（[ADR-0002](adr-0002-theme-follows-os.md)）
 - 前提：画面は Tauri を直接呼ばず、デスクトップとブラウザを切り替えるホストの層（`src/host/`）を通す（[ADR-0004](adr-0004-host-layer.md)）
+- 前提：ブラウザ版は npm パッケージ `@jazmf-dx/pdf-one-web` として出す。CSS は `.pdf-one` に閉じ、色は `--pdf-one-*`（[ADR-0005](adr-0005-web-package.md)）

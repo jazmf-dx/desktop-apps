@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { deleteTargetPages } from "../lib/actions";
 import { isMac } from "../lib/keys";
+import { loadPref, savePref } from "../lib/prefs";
 import { useStore, type Doc } from "../store";
 import { CommandButton } from "./CommandButton";
 import { useContextMenu } from "./ContextMenu";
@@ -13,13 +14,7 @@ const st = () => useStore.getState();
 
 const MENU = ["page.rotateLeft", "page.rotateRight", "-", "page.insertBlank", "page.insertFile", "-", "page.extract", "-", "page.delete"];
 
-const load = () => {
-  try {
-    return Number(localStorage.getItem("organizer.size")) || 180;
-  } catch {
-    return 180;
-  }
-};
+const load = () => Number(loadPref("organizer.size")) || 180;
 
 /**
  * ページを整理 (Acrobat's Organize Pages): every page as a thumbnail, to
@@ -30,11 +25,7 @@ export function Organizer({ d }: { d: Doc }) {
   const { drag, onPointerDown, wasDrag } = usePageDrag(scroller, "grid");
   const [size, setSize] = useState(load);
   useEffect(() => {
-    try {
-      localStorage.setItem("organizer.size", String(size));
-    } catch {
-      /* only a preference */
-    }
+    savePref("organizer.size", String(size));
   }, [size]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {

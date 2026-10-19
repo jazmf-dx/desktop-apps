@@ -9,8 +9,8 @@ import { call, loadEngine, type Engine } from "./engine";
 import { promptDialogs } from "./prompt";
 
 export interface WebHostOptions {
-  /** The engine's script (wasm-bindgen's `pdf_one_wasm.js`). */
-  engineUrl: string;
+  /** The engine's script (wasm-bindgen's `pdf_one_wasm.js`), by URL or as the imported module. */
+  engine: string | Engine;
   /** Its `pdf_one_wasm_bg.wasm`. */
   wasmUrl: string;
   /** Noto Sans JP Regular (SIL OFL 1.1), a static TrueType: the subsetter can't do variable fonts. */
@@ -163,7 +163,7 @@ function createBackend(engine: Engine, fontFamily: string | null): Backend {
  */
 export async function createWebHost(options: WebHostOptions): Promise<Host> {
   const started = performance.now();
-  const engine = await loadEngine(options.engineUrl, options.wasmUrl);
+  const engine = await loadEngine(options.engine, options.wasmUrl);
   const font = await loadFont(engine, options.fontUrl).catch((e) => {
     console.warn(`フォントを読み込めません: ${e}`);
     return null;

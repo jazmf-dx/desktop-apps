@@ -5,7 +5,8 @@ import { Modal } from "./Modal";
 
 /** ? : every command that has a key, from the command table. */
 export function ShortcutHelp() {
-  const close = useStore((s) => () => s.openDialog(null));
+  const openDialog = useStore((s) => s.openDialog);
+  const close = () => openDialog(null);
   const rows = COMMANDS.filter((c) => c.keys?.length);
   return (
     <Modal title="キーボードショートカット" onClose={close} width={420}>

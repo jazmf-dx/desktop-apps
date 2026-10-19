@@ -5,60 +5,105 @@
  * The dark values are Platform UI §1's tokens; the light ones are picked to
  * read like Word and Acrobat, with AA contrast for text. Components use the
  * Tailwind utilities (bg-panel, text-dim, bg-hover…), never a literal colour.
+ *
+ * They are variables of `.pdf-one`, the app's root element (components/Root.tsx),
+ * under `--pdf-one-` names: a page that embeds the npm package overrides them
+ * with `.pdf-one { --pdf-one-accent: … }` (ADR-0005). `:where()` keeps these
+ * defaults at no specificity, so any such rule wins. `data-color-scheme` on
+ * the root forces light or dark; without it the OS decides. The dark values
+ * are written twice (for the OS, and for a forced dark): keep them in step.
  */
-:root {
-  --bg: #ffffff;
-  --panel: #f3f4f6;
-  --raised: #e5e7eb;
-  --line: #d1d5db;
-  --fg: #1f2328;
-  --dim: #5b6270;
-  --accent: #2563eb;
-  --danger: #d1242f;
-  --success: #1a7f37;
-  --warn: #9a6700;
+:where(.pdf-one) {
+  --pdf-one-bg: #ffffff;
+  --pdf-one-panel: #f3f4f6;
+  --pdf-one-raised: #e5e7eb;
+  --pdf-one-line: #d1d5db;
+  --pdf-one-fg: #1f2328;
+  --pdf-one-dim: #5b6270;
+  --pdf-one-accent: #2563eb;
+  --pdf-one-danger: #d1242f;
+  --pdf-one-success: #1a7f37;
+  --pdf-one-warn: #9a6700;
   /* A translucent layer for hovered buttons and rows. */
-  --hover: rgba(0, 0, 0, 0.07);
+  --pdf-one-hover: rgba(0, 0, 0, 0.07);
   /* Behind the pages, so white paper stands out. */
-  --canvas: #d7d9de;
-  --tabbar: #e4e6ea;
-  --scrollbar: #b8bcc4;
+  --pdf-one-canvas: #d7d9de;
+  --pdf-one-tabbar: #e4e6ea;
+  --pdf-one-scrollbar: #b8bcc4;
+}
+@media (prefers-color-scheme: dark) {
+  :where(.pdf-one:not([data-color-scheme="light"])) {
+    --pdf-one-bg: #1b1c1f;
+    --pdf-one-panel: #232428;
+    --pdf-one-raised: #2c2d32;
+    --pdf-one-line: #34353b;
+    --pdf-one-fg: #e6e6e8;
+    --pdf-one-dim: #9a9ba3;
+    --pdf-one-accent: #4c8dff;
+    --pdf-one-danger: #ef5d5d;
+    --pdf-one-success: #3ec27f;
+    --pdf-one-warn: #e8b04a;
+    --pdf-one-hover: rgba(255, 255, 255, 0.09);
+    --pdf-one-canvas: #2a2b30;
+    --pdf-one-tabbar: #141518;
+    --pdf-one-scrollbar: #45464d;
+  }
+}
+:where(.pdf-one[data-color-scheme="dark"]) {
+  --pdf-one-bg: #1b1c1f;
+  --pdf-one-panel: #232428;
+  --pdf-one-raised: #2c2d32;
+  --pdf-one-line: #34353b;
+  --pdf-one-fg: #e6e6e8;
+  --pdf-one-dim: #9a9ba3;
+  --pdf-one-accent: #4c8dff;
+  --pdf-one-danger: #ef5d5d;
+  --pdf-one-success: #3ec27f;
+  --pdf-one-warn: #e8b04a;
+  --pdf-one-hover: rgba(255, 255, 255, 0.09);
+  --pdf-one-canvas: #2a2b30;
+  --pdf-one-tabbar: #141518;
+  --pdf-one-scrollbar: #45464d;
+}
+
+/*
+ * The browser's own controls and scrollbars follow the same choice. Not under
+ * :where(): pdf.js's CSS (lowered for older browsers) sets `color-scheme: light
+ * dark` on the same element, and has to lose to this.
+ */
+.pdf-one {
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1b1c1f;
-    --panel: #232428;
-    --raised: #2c2d32;
-    --line: #34353b;
-    --fg: #e6e6e8;
-    --dim: #9a9ba3;
-    --accent: #4c8dff;
-    --danger: #ef5d5d;
-    --success: #3ec27f;
-    --warn: #e8b04a;
-    --hover: rgba(255, 255, 255, 0.09);
-    --canvas: #2a2b30;
-    --tabbar: #141518;
-    --scrollbar: #45464d;
+  .pdf-one:not([data-color-scheme="light"]) {
     color-scheme: dark;
   }
 }
+.pdf-one[data-color-scheme="dark"] {
+  color-scheme: dark;
+}
+
+/* The bar at the top is taller under macOS's title bar, with room for the
+   window buttons (desktop.css); nothing there otherwise. */
+:where(.pdf-one) {
+  --titlebar: 0px;
+  --traffic-lights: 0px;
+}
 
 @theme inline {
-  --color-bg: var(--bg);
-  --color-panel: var(--panel);
-  --color-raised: var(--raised);
-  --color-line: var(--line);
-  --color-fg: var(--fg);
-  --color-dim: var(--dim);
-  --color-accent: var(--accent);
-  --color-danger: var(--danger);
-  --color-success: var(--success);
-  --color-warn: var(--warn);
-  --color-hover: var(--hover);
-  --color-canvas: var(--canvas);
-  --color-tabbar: var(--tabbar);
+  --color-bg: var(--pdf-one-bg);
+  --color-panel: var(--pdf-one-panel);
+  --color-raised: var(--pdf-one-raised);
+  --color-line: var(--pdf-one-line);
+  --color-fg: var(--pdf-one-fg);
+  --color-dim: var(--pdf-one-dim);
+  --color-accent: var(--pdf-one-accent);
+  --color-danger: var(--pdf-one-danger);
+  --color-success: var(--pdf-one-success);
+  --color-warn: var(--pdf-one-warn);
+  --color-hover: var(--pdf-one-hover);
+  --color-canvas: var(--pdf-one-canvas);
+  --color-tabbar: var(--pdf-one-tabbar);
 }
 
 @theme {
@@ -129,52 +174,39 @@
   }
 }
 
-html,
-body,
-#root {
-  height: 100%;
-}
-
 /*
- * 文字を大きく (docs/UX.md §10): the whole UI is sized in rem, so a bigger
- * root font grows buttons, panels and text together, like the OS's own
- * scaling. The pages themselves are in pixels and don't change.
+ * The root element fills its parent: the window in the desktop app (desktop.css),
+ * whatever the page gives it in the npm package. What a page would pass down
+ * to it is set here, not inherited (a page's own text-align, line height…).
+ * The whole UI is sized in rem (文字を大きく, docs/UX.md §10): a bigger root
+ * font grows buttons, panels and text together, like the OS's own scaling.
+ * The pages themselves are in pixels and don't change.
  */
-:root[data-text="large"] {
-  font-size: 115%;
-}
-:root[data-text="larger"] {
-  font-size: 130%;
-}
-
-/* macOS: the page runs under the title bar, with the window buttons over its
-   top left (src/lib/titleBar.ts). Room left for them; none in full screen,
-   where they are hidden, and none on Windows, which keeps its title bar.
-   --titlebar is the tab bar's height there; its tabs sit at the bottom, 32px
-   tall, so their centres are 32px down: tauri.conf.json's
-   trafficLightPosition.y (32) puts the window buttons' centres at the same
-   height. Change the two together. */
-:root {
-  --titlebar: 0px;
-  --traffic-lights: 0px;
-}
-:root[data-titlebar="overlay"]:not([data-fullscreen]) {
-  --titlebar: 48px;
-  --traffic-lights: 84px;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--fg);
+.pdf-one {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--pdf-one-bg);
+  color: var(--pdf-one-fg);
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Meiryo",
     sans-serif;
   /* 14px at the normal size (docs/UX.md §10). */
   font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-align: start;
+  text-indent: 0;
+  text-transform: none;
+  white-space: normal;
+  cursor: auto;
   user-select: none;
   -webkit-user-select: none;
-  overflow: hidden;
 }
 
 input,
@@ -183,29 +215,9 @@ textarea {
   -webkit-user-select: text;
 }
 
-/* Printing (src/lib/print.ts): only the sheets, on white, one per page. */
-#print-root {
-  display: none;
-}
-@media print {
-  #root,
-  [data-modal] {
-    display: none !important;
-  }
-  #print-root {
-    display: block;
-  }
-  html,
-  body {
-    height: auto;
-    overflow: visible;
-    background: #fff;
-  }
-}
-
 /* Keyboard focus is shown; a click's isn't (Platform UI). */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--pdf-one-accent);
   outline-offset: 1px;
 }
 
@@ -214,7 +226,7 @@ textarea {
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar);
+  background: var(--pdf-one-scrollbar);
   border-radius: 5px;
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -252,7 +264,7 @@ textarea {
   z-index: 2;
 }
 .pdfViewer .textLayer ::selection {
-  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--pdf-one-accent) 35%, transparent);
 }
 /* While a drawing or marking tool is in hand, links and fields don't react. */
 .pdfViewer[data-tool="hand"] .annotationLayer,

@@ -107,6 +107,7 @@ PDF をダブルクリックで開きたいときは、PDF の「プログラム
 npm install
 npm run tauri dev      # アプリを起動
 npm run build:wasm     # 保存の処理を WebAssembly に（ブラウザ版に要る。docs/WASM.md）
+npm run build:web      # npm パッケージ @jazmf-dx/pdf-one-web（web/dist/）を作る。build:wasm のあとで（docs/WASM.md §6）
 npm run dev            # ブラウザで開く（ブラウザ版）。?backend=mock で見本（src/dev/mockHost.ts。どのファイルを開いても同じ見本）
 npm test               # cargo test + tsc --noEmit
 npm run lint           # eslint + cargo fmt --check + clippy
@@ -124,6 +125,7 @@ Linux で Rust をビルドするには `libwebkit2gtk-4.1-dev` などが要る�
 | `src-tauri/src/pdf/` | Rust の PDF 処理。`open.rs`（開く、注釈を取り出す）、`compose.rs`（ページを組み立てて書く）、`annots.rs`（注釈と見た目。印鑑もここ）、`forms.rs`（フォームの値）、`font.rs`（日本語フォントの埋め込み）、`image.rs`（画像） |
 | `src-tauri/src/` | `commands.rs`（フロントから呼ぶコマンド）、`files.rs`（安全な書き込み、バックアップ、スタンプのライブラリ、下書き）、`lib.rs`（plugin の配線、「このアプリで開く」） |
 | `src-tauri/tests/ipc.rs` | コマンドを JS と同じ引数で IPC 越しに呼ぶテスト（開く → 注釈を足して保存 → 開き直す） |
+| `web/` | npm パッケージ `@jazmf-dx/pdf-one-web` の `package.json`・README・型（`index.d.ts`）。`npm run build:web`（`vite.web.config.ts`、`build/postcss-scope.ts`）が `web/dist/` に作る |
 | `src-tauri/icons/` | アプリアイコン（`app-icon.svg` から `npx tauri icon` で生成） |
 | [docs/SPEC.md](docs/SPEC.md) | 機能仕様 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 設計（PDF をどこで読み書きするか、座標、フォント、テスト） |
@@ -147,3 +149,14 @@ desktop-apps の決まり（リポジトリ直下の README「リポジトリの
 製品名に空白があるので、CI はリリースに載せるファイル名の空白を `_` に変える（GitHub が空白を `.` に変えて、`latest.json` の URL とずれるため）。
 
 署名鍵は desktop-apps の Secrets（`TAURI_SIGNING_PRIVATE_KEY`、`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`。ほかのツールと共有）。**`pdf-one-updater` のリリースと tag は消さない**（配布済みのアプリが更新を見つけられなくなる）。
+
+### npm パッケージ（`@jazmf-dx/pdf-one-web`）
+
+ブラウザ版の画面（`web/`、[docs/WASM.md](docs/WASM.md) §6）は、アプリとは別に GitHub Packages に出す。使い方は [web/README.md](web/README.md)。
+
+1. 版を `package.json` と `web/package.json` で同じにして上げ、lockfile を更新する（アプリの版と合わせてもよいし、パッケージだけ上げてもよいが、2 か所は同じ）
+2. `chore: pdf-one-web v<version>` を PR で `main` に入れる
+3. Actions › **pdf-one-web** › **Run workflow** で `main` を実行する（`dry-run` にチェックを入れると、作って pack するだけで出さない）。`pdf-one-web-v<version>` の tag を push しても同じ
+4. CI が tag と `web/package.json` と `package.json` の版の一致を確かめ、Rust と wasm-bindgen-cli 0.2.129 で `build:wasm`、`build:web` を行い、`npm publish` する（`GITHUB_TOKEN`、`packages: write`）。同じ版は出し直せない
+
+`pdf-one-web-v*` の tag はアプリの `pdf-one-v*`（リリースの workflow）とは別。使う側（DX ポータル）は `.npmrc` に `@jazmf-dx:registry=https://npm.pkg.github.com` と読み取りの token が要る。

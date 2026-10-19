@@ -68,7 +68,7 @@ export function StampDialog() {
             <button
               disabled={!s.img}
               onClick={() => s.img && placePicture(s.img)}
-              className="flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-lg border border-line bg-[repeating-conic-gradient(var(--raised)_0_25%,var(--panel)_0_50%)] bg-[length:16px_16px] p-2 hover:border-accent"
+              className="flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-lg border border-line bg-[repeating-conic-gradient(var(--pdf-one-raised)_0_25%,var(--pdf-one-panel)_0_50%)] bg-[length:16px_16px] p-2 hover:border-accent"
               title={s.name}
             >
               {s.url ? <img src={s.url} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-xs text-danger">読めません</span>}

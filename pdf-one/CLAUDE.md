@@ -20,6 +20,7 @@ PDF を見る・ページを整理する・書き込む・フォームに入力�
 - テキストボックスの折り返しはフロント（`src/lib/text.ts`）で決めて `Annot.lines` で送る。行の高さと余白の定数は `annots.rs` と同じ値にする
 - 操作はコマンド表 `src/lib/commands.ts` にまず足す
 - Rust コマンドは `src/lib/api.ts` のラッパ経由で呼ぶ。画面は Tauri やブラウザの API を直接呼ばず、ホスト（`src/host/`、[ADR-0004](decisions/adr-0004-host-layer.md)）を通す：コマンドは `Backend`、ダイアログは `host().dialogs`、できないことは `host().can` を見て出さない。コマンドを足したら `host/desktop.ts`・`host/web/`・モック `src/dev/mockHost.ts` も同じ PR で更新する
+- 画面のルートの要素は class `.pdf-one`（`components/Root.tsx`）。画面の色は `--pdf-one-*`、CSS は `.pdf-one` の中で完結させる（`html`・`body`・`#root` や `document.documentElement` を画面から触らない。デスクトップだけの指定は `src/desktop.css`）。ブラウザ版は npm パッケージ `@jazmf-dx/pdf-one-web`（`web/`、[ADR-0005](decisions/adr-0005-web-package.md)）になり、`build:web` が CSS をこの前提で閉じる。`localStorage` は `lib/prefs.ts` を通す
 - pdf.js は legacy ビルドを使う（`vite.config.ts` の alias）。OS の WebView（古い macOS の Safari）で動かすため
 
 ## コマンド
@@ -28,6 +29,7 @@ PDF を見る・ページを整理する・書き込む・フォームに入力�
 npm install
 npm run tauri dev      # アプリを起動
 npm run build:wasm     # 保存の処理を WebAssembly に（docs/WASM.md）。ブラウザ版に要る
+npm run build:web      # npm パッケージ（web/dist/）を作る。build:wasm のあとで（docs/WASM.md §6）
 npm run dev            # ブラウザで開く。既定はブラウザ版（本物の PDF）。?backend=mock で見本（wasm 無しで画面だけ）
 npm test               # cargo test + tsc --noEmit
 npm run lint

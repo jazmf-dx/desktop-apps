@@ -62,6 +62,33 @@ jobs:
       - run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
       - run: cargo test --manifest-path src-tauri/Cargo.toml
 
+  # The npm package (pdf-one/web, ADR-0005) builds: the WebAssembly, then the
+  # package, which checks its own CSS is closed inside `.pdf-one`. Publishing
+  # is pdf-one-web.yml.
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: swatinem/rust-cache@v2.9.2
+        with:
+          workspaces: pdf-one/wasm -> target
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      # The same version as wasm/Cargo.toml's wasm-bindgen (it checks).
+      - run: cargo install wasm-bindgen-cli --version 0.2.129 --locked
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: pdf-one/package-lock.json
+      - run: npm ci
+      - run: npm run build:wasm
+      - run: npm run build:web
+      - run: npm pack --dry-run
+        working-directory: pdf-one/web
+
   # Rust tests on Windows too: saving goes through a rename over the old
   # file and paths with backslashes (files.rs), and the system proxy and the
   # font lookup have Windows-only code (proxy.rs, pdf/font.rs).
