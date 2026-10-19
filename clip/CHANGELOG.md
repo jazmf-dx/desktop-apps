@@ -44,4 +44,4 @@
 | macOS（Apple Silicon） | `.dmg` |
 | Windows | `-setup.exe` |
 
-初回は署名なしのビルドの警告が出ます。入れ方は [README](https://github.com/2204601/workbench/tree/main/clip#インストール) を見てください。
+初回は署名なしのビルドの警告が出ます。入れ方は [README](https://github.com/jazmf-dx/desktop-apps/tree/main/clip#インストール) を見てください。

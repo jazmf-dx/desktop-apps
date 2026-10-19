@@ -28,10 +28,10 @@ use crate::proxy;
 /// Same as `plugins.updater.endpoints` in tauri.conf.json. Other tools'
 /// releases share this repository, so the feed lives on its own fixed release
 /// instead of `releases/latest`.
-const FEED: &str = "https://github.com/2204601/workbench/releases/download/meter-updater/latest.json";
+const FEED: &str = "https://github.com/jazmf-dx/desktop-apps/releases/download/meter-updater/latest.json";
 
 /// The tag of a version's release (and its notes) in the same repository.
-const RELEASE_PAGE: &str = "https://github.com/2204601/workbench/releases/tag/meter-v";
+const RELEASE_PAGE: &str = "https://github.com/jazmf-dx/desktop-apps/releases/tag/meter-v";
 
 pub const MENU_LABEL: &str = "アップデートを確認…";
 
