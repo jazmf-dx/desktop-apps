@@ -17,13 +17,13 @@ AI と人が実装前に確認する **現在の前提**。機能要件、ロー
 | データの置き場 | `settings.json`（作成者名、アップデートの自動確認、最近使ったファイル、見た案内）、`backups/`（上書き前の版、30 個）、`stamps/`（印鑑・署名の画像）、`drafts/`（保存していない変更の下書き。保存か「保存しない」で消える）。開いた PDF はメモリだけ |
 | フォント | アプリはフォントを持たず、OS の日本語フォントを埋め込む（游ゴシック、ヒラギノ角ゴシック W3 など） |
 | 外との接続 | なし（自分から出る通信は updater の feed だけ。PDF のリンクは確認してから OS のブラウザで開く） |
-| 配布の形 | workbench 同居（Platform Optional「複数ツール同居リポジトリ」。tag `pdf-one-v*`、feed は固定リリース `pdf-one-updater`） |
+| 配布の形 | desktop-apps 同居（Platform Optional「複数ツール同居リポジトリ」。tag `pdf-one-v*`、feed は固定リリース `pdf-one-updater`） |
 | 識別子 | `dev.workbench.pdf-one`（一度配布したら変えない） |
 | productName | `PDF One`（空白入り。CI がリリースのファイル名の空白を `_` に変える） |
 | ファイルの関連付け | `.pdf`（`bundle.fileAssociations`、役割は Editor）。既定のアプリにするかは利用者が OS で選ぶ |
 | 主な利用 OS | Windows（社内のほぼ全員）。macOS も Platform の基準どおり配布するが、確認の優先度は Windows を先にする |
-| desktop-base | 未採用（まだ無い）。Disk Analyzer の雛形から写す（workbench `166b802`）。desktop-base ができたら差し替える |
-| updater の署名鍵 | workbench の Secrets の鍵（ほかのツールと同じ。公開鍵 ID `50FEA12A1D8F04D1`） |
+| desktop-base | 未採用（まだ無い）。Disk Analyzer の雛形から写す（desktop-apps `166b802`）。desktop-base ができたら差し替える |
+| updater の署名鍵 | desktop-apps の Secrets の鍵（ほかのツールと同じ。公開鍵 ID `50FEA12A1D8F04D1`） |
 
 ## 該当しない Standard
 
