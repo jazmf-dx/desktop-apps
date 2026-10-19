@@ -25,7 +25,7 @@ src/（画面。そのまま）
 ```
 
 - `wasm/`：`src-tauri/src/pdf/mod.rs` を `#[path]` で取り込むだけのクレート。`AppState` の代わりに、開いた文書と画像をメモリに持ち、`open` / `takeView` / `textLines` / `compose` / `addImage` / `imageBytes` / `setFont` を出す
-- `src/host/web/`：ブラウザ版のホスト。`createWebHost({ engineUrl, wasmUrl, fontUrl })` に、エンジンの script・wasm・フォントの URL を渡して作る（npm パッケージにするとき、配り方を呼び出し側が決められるように）。エンジンが読めなければ投げる。`npm run dev` では `src/main.tsx` が `/wasm/pkg/…` と Vite の `?url` を渡す
+- `src/host/web/`：ブラウザ版のホスト。`createWebHost({ engine, wasmUrl, fontUrl })` に、エンジン（script の URL か、取り込み済みのモジュール）・wasm・フォントの URL を渡して作る（配り方を呼び出し側が決められるように）。エンジンが読めなければ投げる。`npm run dev` では `src/main.tsx` が `/wasm/pkg/…` と Vite の `?url` を渡し、npm パッケージ（§6）では `src/web.tsx` が `assetsBase` から作る
 - ブラウザ版ができないこと（`can`）：上書きとバックアップ（`overwrite`）、フォルダへの書き出し（`folders`）、ファイルの場所を開く（`reveal`）、最近使ったファイル（`recent`）、アプリ内アップデート（`updates`）。画面は `can` を見て、これらを出さない（保存は聞かずにダウンロード、分割は 1 ファイルずつダウンロード）
 - `src/dev/mockHost.ts`：wasm を作らずに画面だけ触る見本。`?backend=mock` のとき、または `npm run dev` でエンジンが読めなかったときに使う
 - 画面の変更は `DropZone.tsx` だけ：Tauri の外では、ページ自身のドロップのイベントで同じことをする（PDF を開く、ページ一覧に落とせばページとして足す、画像はページに置く）。Tauri の `isTauri()` を偽って Tauri のドロップを真似ると、メニューバーやアップデートまで動き出すので、そうしない（ホストの層を入れたあとは、ダイアログなどの呼び出しも画面側がホストを通す）
@@ -88,3 +88,24 @@ Chromium（Playwright）で、ブラウザ版の PDF One を操作した。
 3. **島として載せる**：DX ポータルの React Islands の 1 つにする。React 19・Tailwind v4・lucide-react は同じ。色は DX ポータルの Semantic Token に合わせる
 4. **今の PDF ツールとの関係**：軽くする・鍵をかける・画像にする・文字認識は今の PDF ツールにあり、PDF One に無い。置き換えではなく「編集する」の入口を足す
 5. **ファイルはサーバーに送らない**（今の PDF ツールの約束）は、このやり方なら守れる。処理はすべてブラウザの中
+
+## 6. パッケージ（`@jazmf-dx/pdf-one-web`）
+
+ブラウザ版の画面を npm パッケージにした（`web/`、[ADR-0005](../decisions/adr-0005-web-package.md)）。使い方は [web/README.md](../web/README.md)。
+
+```tsx
+import { PdfOneApp } from "@jazmf-dx/pdf-one-web";
+import "@jazmf-dx/pdf-one-web/style.css";
+
+<div style={{ height: "…" }}>
+  <PdfOneApp assetsBase="/static/pdf-one/0.3.0/" colorScheme="light" />
+</div>
+```
+
+- **作り方**：`npm run build:wasm`（wasm/pkg/）のあと `npm run build:web`（`vite.web.config.ts`）。`web/dist/` に `index.js`・`index.d.ts`（手書きの `web/index.d.ts`）・`style.css`・`assets/` ができる。`cd web && npm pack` で .tgz（約 6.4 MB）。`dist/` の中身は git に入れない
+- **`assetsBase`**：`assets/`（`pdf_one_wasm_bg.wasm`、`NotoSansJP-Regular.ttf`、`pdf.worker.min.mjs`、pdf.js の `cmaps/`・`standard_fonts/`・`wasm/`、ライセンス）を置いた URL で、置く側が静的ファイルとして配る。サーバーへの通信はこれを読むだけ（§5 の「ファイルはサーバーに送らない」は守られる）。pdf.js の worker と assets の場所は `lib/pdfjs.ts` の `setUpPdfjs`（デスクトップは `main.tsx` が自分の `dist/pdfjs/` を渡す）
+- **CSS**：画面のルートの要素の class `.pdf-one` に閉じる。`build/postcss-scope.ts` が、出来上がった `style.css` のセレクタをすべて `.pdf-one` の下に入れ、`@layer` を外し、`rem` を `--pdf-one-rem` の掛け算に、`@keyframes` の名前に `pdf-one-` を付ける。外に出たセレクタが残るとビルドが失敗する。デスクトップに要る `html`・`body`・`#root` の指定は `src/desktop.css`、パッケージだけの指定は `src/web.css`
+- **色**：`.pdf-one` の `--pdf-one-bg`・`-panel`・`-raised`・`-line`・`-fg`・`-dim`・`-accent`・`-danger`・`-success`・`-warn`・`-hover`・`-canvas`・`-tabbar`・`-scrollbar`。ライト・ダークは `colorScheme`（`data-color-scheme`）と `prefers-color-scheme`
+- **ページとのかかわり**：`document.title` は変えない。`beforeunload` で保存していない変更を警告する。`localStorage` のキーに `pdf-one:` を付ける（`lib/prefs.ts`）。ショートカットは `window` で受ける
+- **確かめたこと**（2026-10-19、Chromium）：`html { font-size: 62.5% }`・`h1 { color: red }`・`button { … }` を持つページに載せ、開いた文書・ダイアログ・右クリックのメニュー（ライト・ダーク）の全要素の computed style が、何もないページ、デスクトップ版（`npm run dev`）と一致する（ページの `h1` の色は、画面の見出しを `inherit` に戻している）
+- **出し方**：Actions › **pdf-one-web**（[README「リリース」](../README.md#リリース)）

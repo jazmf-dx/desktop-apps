@@ -8,14 +8,22 @@
  */
 import { getDocument, GlobalWorkerOptions, PasswordResponses, type PDFDocumentLoadingTask, type PDFDocumentProxy } from "pdfjs-dist";
 import type { TextContent } from "pdfjs-dist/types/src/display/api";
-// The legacy build, as for the main thread (vite.config.ts).
-import workerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { api, type OpenedPdf } from "./api";
 
-GlobalWorkerOptions.workerSrc = workerUrl;
+/** Where pdf.js's files are: `assetsUrl` ends with a slash and has cmaps/, standard_fonts/ and wasm/ in it. */
+let assets = "";
 
-/** Files pdf.js reads at run time (vite.config.ts `pdfjsAssets`). */
-const assets = new URL("pdfjs/", document.baseURI).href;
+/**
+ * Tells pdf.js where its worker (the legacy build, as for the main thread:
+ * vite.config.ts) and the files it reads at run time are, before anything
+ * is opened. The desktop app has them next to its page (src/main.tsx,
+ * vite.config.ts `pdfjsAssets`); the npm package from `assetsBase`
+ * (src/web.tsx).
+ */
+export function setUpPdfjs(options: { workerSrc: string; assetsUrl: string }) {
+  GlobalWorkerOptions.workerSrc = options.workerSrc;
+  assets = options.assetsUrl;
+}
 
 export interface PageInfo {
   /** The visible box in PDF space (pdf.js `page.view`). */

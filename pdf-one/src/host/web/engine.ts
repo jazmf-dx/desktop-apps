@@ -13,11 +13,15 @@ export interface Engine {
   imageBytes(id: number): Uint8Array;
 }
 
-/** Loads the engine's script and starts its wasm. Throws when either can't be read. */
-export async function loadEngine(engineUrl: string, wasmUrl: string): Promise<Engine> {
-  const engine = (await import(/* @vite-ignore */ engineUrl)) as Engine;
-  await engine.default({ module_or_path: wasmUrl });
-  return engine;
+/**
+ * Starts the engine's wasm: the script is imported from `engine` when that is
+ * a URL, or is the module itself when the caller has bundled it (the npm
+ * package does). Throws when either can't be read.
+ */
+export async function loadEngine(engine: string | Engine, wasmUrl: string): Promise<Engine> {
+  const module = typeof engine === "string" ? ((await import(/* @vite-ignore */ engine)) as Engine) : engine;
+  await module.default({ module_or_path: wasmUrl });
+  return module;
 }
 
 /** The engine throws strings, as the Tauri commands do. */

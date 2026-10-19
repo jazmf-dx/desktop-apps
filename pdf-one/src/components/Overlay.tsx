@@ -933,8 +933,8 @@ export const Overlay = memo(function Overlay({
           y={y1}
           width={x2 - x1}
           height={y2 - y1}
-          fill={drag.tool === "rect" ? (style.fill ?? "none") : "color-mix(in srgb, var(--accent) 10%, transparent)"}
-          stroke={drag.tool === "rect" ? style.color : "var(--accent)"}
+          fill={drag.tool === "rect" ? (style.fill ?? "none") : "color-mix(in srgb, var(--pdf-one-accent) 10%, transparent)"}
+          stroke={drag.tool === "rect" ? style.color : "var(--pdf-one-accent)"}
           strokeWidth={drag.tool === "rect" ? sw : 1}
           strokeDasharray={drag.tool === "rect" ? undefined : "4 3"}
         />
@@ -1165,7 +1165,7 @@ function TextBox({
       style={{
         ...style,
         background: a.fill ?? undefined,
-        border: a.width > 0 ? `${a.width * s}px solid ${a.color}` : editing ? "1px dashed var(--accent)" : undefined,
+        border: a.width > 0 ? `${a.width * s}px solid ${a.color}` : editing ? "1px dashed var(--pdf-one-accent)" : undefined,
         boxSizing: "border-box",
         overflow: "visible",
       }}

@@ -131,6 +131,12 @@ function layOut(pages: Printed[], o: PrintOptions): HTMLElement {
   const style = document.createElement("style");
   // 6 mm in from the edge: what most printers can't reach anyway.
   style.textContent = `@page { size: ${sw}mm ${sh}mm; margin: 0; }
+#print-root { display: none; }
+@media print {
+  body > :not(#print-root) { display: none !important; }
+  #print-root { display: block; }
+  html, body { height: auto; overflow: visible; background: #fff; }
+}
 #print-root .sheet { width: ${sw}mm; height: ${sh}mm; box-sizing: border-box; padding: 6mm; display: flex; align-items: center; justify-content: center; gap: 6mm; overflow: hidden; break-after: page; page-break-after: always; }
 #print-root .sheet:last-child { break-after: auto; page-break-after: auto; }
 #print-root img { display: block; object-fit: contain; }`;

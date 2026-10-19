@@ -4,8 +4,11 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "pdfjs-dist/web/pdf_viewer.css";
 import "./index.css";
+import "./desktop.css";
 import { setHost, type Host } from "./host";
+import workerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { logUncaughtErrors } from "./lib/log";
+import { setUpPdfjs } from "./lib/pdfjs";
 import { setUpTitleBar } from "./lib/titleBar";
 
 /**
@@ -24,7 +27,7 @@ async function chooseHost(): Promise<Host> {
       // Noto Sans JP (SIL OFL 1.1), the static Regular: the subsetter can't do variable fonts.
       const fontUrl = (await import("@expo-google-fonts/noto-sans-jp/400Regular/NotoSansJP_400Regular.ttf?url")).default;
       // Served by Vite from wasm/pkg/ (not in git: `npm run build:wasm`).
-      return await createWebHost({ engineUrl: "/wasm/pkg/pdf_one_wasm.js", wasmUrl: "/wasm/pkg/pdf_one_wasm_bg.wasm", fontUrl });
+      return await createWebHost({ engine: "/wasm/pkg/pdf_one_wasm.js", wasmUrl: "/wasm/pkg/pdf_one_wasm_bg.wasm", fontUrl });
     } catch (e) {
       console.warn("ブラウザ版のエンジンを読めないので、見本（?backend=mock）で動かします。`npm run build:wasm` で作れます:", e);
       return mock();
@@ -36,6 +39,8 @@ async function chooseHost(): Promise<Host> {
 async function main() {
   logUncaughtErrors();
   setUpTitleBar();
+  // pdf.js's worker and files, next to the page (vite.config.ts `pdfjsAssets`).
+  setUpPdfjs({ workerSrc: workerUrl, assetsUrl: new URL("pdfjs/", document.baseURI).href });
   setHost(await chooseHost());
   ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <React.StrictMode>

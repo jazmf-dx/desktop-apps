@@ -4,6 +4,7 @@
 // id.
 import { create } from "zustand";
 import type { Annot, ImageInfo } from "./lib/api";
+import { loadPref as load, savePref as persist } from "./lib/prefs";
 import type { SealShape } from "./lib/seal";
 
 export type ToastKind = "success" | "info" | "error";
@@ -245,21 +246,6 @@ export const newAnnotId = () => `pdfe-${Date.now().toString(36)}-${Math.random()
 
 /** How many steps undo goes back. */
 const HISTORY = 100;
-
-const load = (key: string): string | null => {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-};
-const persist = (key: string, value: string) => {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    /* ignore */
-  }
-};
 
 const MARKER: ToolStyle = { color: "#ffd400", width: 1, opacity: 0.45, fill: null, fontSize: 12 };
 const PEN: ToolStyle = { color: "#e5383b", width: 2, opacity: 1, fill: null, fontSize: 12 };
