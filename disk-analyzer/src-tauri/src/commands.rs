@@ -58,7 +58,7 @@ fn release_page(version: &str) -> CmdResult<String> {
     if !ok {
         return Err(format!("not a version: {version}"));
     }
-    Ok(format!("https://github.com/2204601/workbench/releases/tag/disk-analyzer-v{version}"))
+    Ok(format!("https://github.com/jazmf-dx/desktop-apps/releases/tag/disk-analyzer-v{version}"))
 }
 
 /// ヘルプ › ログを表示: the log file in Finder / Explorer.
@@ -277,7 +277,7 @@ pub fn reveal_item(state: State<AppState>, id: u32) -> CmdResult<()> {
 mod release_page_tests {
     #[test]
     fn takes_only_a_version() {
-        let page = "https://github.com/2204601/workbench/releases/tag/disk-analyzer-v0.2.0";
+        let page = "https://github.com/jazmf-dx/desktop-apps/releases/tag/disk-analyzer-v0.2.0";
         assert_eq!(super::release_page("0.2.0").unwrap(), page);
         assert_eq!(super::release_page("v0.2.0").unwrap(), page);
         assert!(super::release_page("1.0.0-beta.1").is_ok());
