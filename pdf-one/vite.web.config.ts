@@ -1,4 +1,4 @@
-// `npm run build:web`: the npm package @jazmf-dx/pdf-one-web (web/, ADR-0005,
+// `bun run build:web`: the npm package @jazmf-dx/pdf-one-web (web/, ADR-0005,
 // docs/WASM.md). The app's screens (src/web.tsx) as a library in web/dist/:
 // index.js, style.css (scoped to `.pdf-one`), the types, and assets/ — the
 // files the page that uses it serves as static files, by `assetsBase`.
@@ -40,7 +40,7 @@ function packageAssets(): Plugin {
       const add = (fileName: string, file: string) =>
         this.emitFile({ type: "asset", fileName: `assets/${fileName}`, source: fs.readFileSync(file) });
       const wasm = path.join(engineDir, "pdf_one_wasm_bg.wasm");
-      if (!fs.existsSync(wasm)) this.error("wasm/pkg/pdf_one_wasm_bg.wasm is missing: run `npm run build:wasm` first");
+      if (!fs.existsSync(wasm)) this.error("wasm/pkg/pdf_one_wasm_bg.wasm is missing: run `bun run build:wasm` first");
       add("pdf_one_wasm_bg.wasm", wasm);
       // Noto Sans JP (SIL OFL 1.1), the static Regular: the subsetter can't do variable fonts.
       add("NotoSansJP-Regular.ttf", path.join(noto, "400Regular/NotoSansJP_400Regular.ttf"));

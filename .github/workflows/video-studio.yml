@@ -51,15 +51,14 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: video-studio/package-lock.json
-      - run: npm ci
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
       # The sidecar (tauri.conf.json bundle.externalBin): tauri-build wants it,
       # and the IPC tests export with it.
-      - run: npm run ffmpeg
-      - run: npx tsc --noEmit
-      - run: npx eslint src
-      - run: npx vitest run
+      - run: bun run ffmpeg
+      - run: bunx tsc --noEmit
+      - run: bunx eslint src
+      - run: bunx vitest run
       - run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
       # tauri::generate_context! needs the built frontend folder to exist.
       - run: mkdir -p dist
@@ -114,8 +113,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: video-studio/package-lock.json
+      - uses: oven-sh/setup-bun@v2
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.rust-targets }}
@@ -123,8 +121,8 @@ jobs:
         with:
           workspaces: video-studio/src-tauri -> target
           save-if: ${{ github.ref == 'refs/heads/main' }}
-      - run: npm ci
-      - run: npm run ffmpeg -- ${{ matrix.target-triple }}
+      - run: bun install --frozen-lockfile
+      - run: bun run ffmpeg ${{ matrix.target-triple }}
       - name: Build
         shell: bash
         run: |
@@ -135,7 +133,7 @@ jobs:
             echo '{"bundle":{"createUpdaterArtifacts":false}}' > "$RUNNER_TEMP/no-updater.json"
             no_updater=(--config "$RUNNER_TEMP/no-updater.json")
           fi
-          npm run tauri build -- ${{ matrix.build-args }} "${no_updater[@]}"
+          bun run tauri build ${{ matrix.build-args }} "${no_updater[@]}"
       - uses: actions/upload-artifact@v6
         with:
           name: video-studio-${{ runner.os }}

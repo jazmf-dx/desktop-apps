@@ -62,13 +62,12 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: pdf-one/package-lock.json
           registry-url: https://npm.pkg.github.com
           scope: "@jazmf-dx"
-      - run: npm ci
-      - run: npm run build:wasm
-      - run: npm run build:web
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run build:wasm
+      - run: bun run build:web
 
       - name: Pack
         working-directory: pdf-one/web

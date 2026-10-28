@@ -104,13 +104,13 @@ PDF をダブルクリックで開きたいときは、PDF の「プログラム
 開発の基準は [desktop-platform](https://github.com/jazmf-dx/desktop-platform) に従う。前提は [decisions/project-context.md](decisions/project-context.md)。コマンドは `pdf-one/` で実行する。
 
 ```bash
-npm install
-npm run tauri dev      # アプリを起動
-npm run build:wasm     # 保存の処理を WebAssembly に（ブラウザ版に要る。docs/WASM.md）
-npm run build:web      # npm パッケージ @jazmf-dx/pdf-one-web（web/dist/）を作る。build:wasm のあとで（docs/WASM.md §6）
-npm run dev            # ブラウザで開く（ブラウザ版）。?backend=mock で見本（src/dev/mockHost.ts。どのファイルを開いても同じ見本）
-npm test               # cargo test + tsc --noEmit
-npm run lint           # eslint + cargo fmt --check + clippy
+bun install
+bun run tauri dev      # アプリを起動
+bun run build:wasm     # 保存の処理を WebAssembly に（ブラウザ版に要る。docs/WASM.md）
+bun run build:web      # npm パッケージ @jazmf-dx/pdf-one-web（web/dist/）を作る。build:wasm のあとで（docs/WASM.md §6）
+bun run dev            # ブラウザで開く（ブラウザ版）。?backend=mock で見本（src/dev/mockHost.ts。どのファイルを開いても同じ見本）
+bun run test           # cargo test + tsc --noEmit
+bun run lint           # eslint + cargo fmt --check + clippy
 cargo run --example sample --manifest-path src-tauri/Cargo.toml -- <in.pdf|-> <out.pdf> [画像.png]   # 注釈を 1 つずつ書いた PDF を作る（ほかのビューアでの見え方の確認用）
 ```
 
@@ -125,8 +125,8 @@ Linux で Rust をビルドするには `libwebkit2gtk-4.1-dev` などが要る�
 | `src-tauri/src/pdf/` | Rust の PDF 処理。`open.rs`（開く、注釈を取り出す）、`compose.rs`（ページを組み立てて書く）、`annots.rs`（注釈と見た目。印鑑もここ）、`forms.rs`（フォームの値）、`font.rs`（日本語フォントの埋め込み）、`image.rs`（画像） |
 | `src-tauri/src/` | `commands.rs`（フロントから呼ぶコマンド）、`files.rs`（安全な書き込み、バックアップ、スタンプのライブラリ、下書き）、`lib.rs`（plugin の配線、「このアプリで開く」） |
 | `src-tauri/tests/ipc.rs` | コマンドを JS と同じ引数で IPC 越しに呼ぶテスト（開く → 注釈を足して保存 → 開き直す） |
-| `web/` | npm パッケージ `@jazmf-dx/pdf-one-web` の `package.json`・README・型（`index.d.ts`）。`npm run build:web`（`vite.web.config.ts`、`build/postcss-scope.ts`）が `web/dist/` に作る |
-| `src-tauri/icons/` | アプリアイコン（`app-icon.svg` から `npx tauri icon` で生成） |
+| `web/` | npm パッケージ `@jazmf-dx/pdf-one-web` の `package.json`・README・型（`index.d.ts`）。`bun run build:web`（`vite.web.config.ts`、`build/postcss-scope.ts`）が `web/dist/` に作る |
+| `src-tauri/icons/` | アプリアイコン（`app-icon.svg` から `bunx tauri icon` で生成） |
 | [docs/SPEC.md](docs/SPEC.md) | 機能仕様 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 設計（PDF をどこで読み書きするか、座標、フォント、テスト） |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | これから（Acrobat との対応表、版ごとの計画） |
@@ -140,7 +140,7 @@ Linux で Rust をビルドするには `libwebkit2gtk-4.1-dev` などが要る�
 
 desktop-apps の決まり（リポジトリ直下の README「リポジトリの決まりごと」、Platform Optional「複数ツール同居リポジトリ」）に従う。
 
-1. バージョンを `package.json`、`src-tauri/tauri.conf.json`、`src-tauri/Cargo.toml` の 3 か所で上げ、lockfile も更新する（`npm version X --no-git-tag-version`、`cargo update -p pdf-one --manifest-path src-tauri/Cargo.toml`）
+1. バージョンを `package.json`、`src-tauri/tauri.conf.json`、`src-tauri/Cargo.toml` の 3 か所で上げ、lockfile も更新する（`bun pm version X --no-git-tag-version`、`cargo update -p pdf-one --manifest-path src-tauri/Cargo.toml`）
 2. `CHANGELOG.md` に `## <version>` の節を書く（変更点 / ダウンロード / 注意。リリースの本文になる。アップデートのダイアログと設定の「更新内容」からこのページへ飛ぶ）
 3. `chore: pdf-one v<version>` を PR で `main` に入れる
 4. Actions › **pdf-one** › **Run workflow** で `main`、`release` にチェックを入れて実行する。`pdf-one-v<version>` の tag を push しても同じ

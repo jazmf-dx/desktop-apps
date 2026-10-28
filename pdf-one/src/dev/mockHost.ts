@@ -1,5 +1,5 @@
 // Dev-only in-memory stand-in for the Rust backend, used when the UI is
-// opened in a normal browser (`npm run dev`) with `?backend=mock`, without
+// opened in a normal browser (`bun run dev`) with `?backend=mock`, without
 // building the wasm (Platform playbook: ブラウザで UI を作る). Implements the
 // same Backend as src/host/desktop.ts, closely enough for UI work; change
 // both in the same PR. Every file "opened" is the same made-up sample (a

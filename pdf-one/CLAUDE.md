@@ -26,14 +26,14 @@ PDF を見る・ページを整理する・書き込む・フォームに入力�
 ## コマンド
 
 ```bash
-npm install
-npm run tauri dev      # アプリを起動
-npm run build:wasm     # 保存の処理を WebAssembly に（docs/WASM.md）。ブラウザ版に要る
-npm run build:web      # npm パッケージ（web/dist/）を作る。build:wasm のあとで（docs/WASM.md §6）
-npm run dev            # ブラウザで開く。既定はブラウザ版（本物の PDF）。?backend=mock で見本（wasm 無しで画面だけ）
-npm test               # cargo test + tsc --noEmit
-npm run lint
-npm run tauri build    # 配布用ビルド（署名鍵が要る。README「リリース」）
+bun install
+bun run tauri dev      # アプリを起動
+bun run build:wasm     # 保存の処理を WebAssembly に（docs/WASM.md）。ブラウザ版に要る
+bun run build:web      # npm パッケージ（web/dist/）を作る。build:wasm のあとで（docs/WASM.md §6）
+bun run dev            # ブラウザで開く。既定はブラウザ版（本物の PDF）。?backend=mock で見本（wasm 無しで画面だけ）
+bun run test           # cargo test + tsc --noEmit（`bun test` は Bun のテストランナーなので使わない）
+bun run lint
+bun run tauri build    # 配布用ビルド（署名鍵が要る。README「リリース」）
 ```
 
 ## 変えないもの
