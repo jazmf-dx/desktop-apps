@@ -181,7 +181,7 @@ bun run lint           # ESLint、cargo fmt --check、clippy（CI と同じ）
 TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/shelf.key)" bun run tauri build
 # 鍵なし
 echo '{"bundle":{"createUpdaterArtifacts":false}}' > /tmp/no-updater.json
-bun run tauri build -- --config /tmp/no-updater.json
+bun run tauri build --config /tmp/no-updater.json
 ```
 
 開発モード（`bun run tauri dev`）では自動のアップデート確認はしません（トレイの「アップデートを確認…」は動きます）。「ログイン時に起動」も自動ではオンにしません（トレイから手動でオンにすると、開発用のバイナリが登録されるので注意してください）。

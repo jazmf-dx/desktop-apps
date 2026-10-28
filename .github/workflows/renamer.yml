@@ -121,7 +121,7 @@ jobs:
             echo '{"bundle":{"createUpdaterArtifacts":false}}' > "$RUNNER_TEMP/no-updater.json"
             no_updater=(--config "$RUNNER_TEMP/no-updater.json")
           fi
-          bun run tauri build -- ${{ matrix.build-args }} "${no_updater[@]}"
+          bun run tauri build ${{ matrix.build-args }} "${no_updater[@]}"
       - uses: actions/upload-artifact@v6
         with:
           name: renamer-${{ runner.os }}

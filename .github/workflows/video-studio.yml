@@ -122,7 +122,7 @@ jobs:
           workspaces: video-studio/src-tauri -> target
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: bun install --frozen-lockfile
-      - run: bun run ffmpeg -- ${{ matrix.target-triple }}
+      - run: bun run ffmpeg ${{ matrix.target-triple }}
       - name: Build
         shell: bash
         run: |
@@ -133,7 +133,7 @@ jobs:
             echo '{"bundle":{"createUpdaterArtifacts":false}}' > "$RUNNER_TEMP/no-updater.json"
             no_updater=(--config "$RUNNER_TEMP/no-updater.json")
           fi
-          bun run tauri build -- ${{ matrix.build-args }} "${no_updater[@]}"
+          bun run tauri build ${{ matrix.build-args }} "${no_updater[@]}"
       - uses: actions/upload-artifact@v6
         with:
           name: video-studio-${{ runner.os }}
