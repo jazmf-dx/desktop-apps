@@ -1,5 +1,5 @@
 /*
- * What only the desktop app's window needs (and `npm run dev` in a browser):
+ * What only the desktop app's window needs (and `bun run dev` in a browser):
  * the page is the window, and the app (`.pdf-one`, index.css) fills it. The
  * npm package has none of this: the page it sits in decides (web.css).
  */

@@ -102,9 +102,9 @@ Django なら `STATICFILES_DIRS` に `node_modules/@jazmf-dx/pdf-one-web/dist/as
 
 ```bash
 cd pdf-one
-npm ci
-npm run build:wasm      # Rust と wasm32-unknown-unknown、wasm-bindgen-cli 0.2.129 が要る
-npm run build:web       # web/dist/ ができる
+bun install --frozen-lockfile
+bun run build:wasm      # Rust と wasm32-unknown-unknown、wasm-bindgen-cli 0.2.129 が要る
+bun run build:web       # web/dist/ ができる
 cd web && npm pack      # 中身の確認（.tgz）
 ```
 

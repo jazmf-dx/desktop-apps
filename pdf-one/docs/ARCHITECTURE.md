@@ -88,4 +88,4 @@ pdf.js のワーカーは、CMap（埋め込まれていない日本語のフォ
 - Rust のユニットテスト：注釈の種類ごとの外観、開く→取り出す、ページの並べ替え・回転・結合・白紙・重複、フォームの値、フォントの埋め込み（`tests/fixtures/LiberationSans-Regular.ttf`、SIL OFL）、画像、バックアップ
 - `tests/ipc.rs`：JS と同じ引数で、開く → 注釈 6 種（印鑑を含む）と別の文書のページと白紙で保存 → 開き直して同じ注釈が戻る、印刷用の組み立て、上書きのバックアップ、エラーの文言、設定とライブラリ
 - `examples/sample.rs`：注釈を 1 つずつ書いた PDF を作る。Acrobat、Edge、プレビュー、pdftoppm での見え方を目で確かめる用
-- フロント：型チェックと eslint。UI はブラウザのモック（`npm run dev`）で確かめる
+- フロント：型チェックと eslint。UI はブラウザのモック（`bun run dev`）で確かめる

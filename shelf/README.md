@@ -166,25 +166,25 @@ Tauri 2（Rust）＋ TypeScript（Vite、フレームワークなし）で作っ
 
 ```sh
 cd shelf
-npm install
-npm run tauri dev      # 開発モードで起動（画面の変更はすぐ反映されます）
-npm run tauri build    # インストーラを作成（macOS は .app/.dmg、Windows は -setup.exe）
-npm test               # Rust のテストと型チェック
-npm run lint           # ESLint、cargo fmt --check、clippy（CI と同じ）
+bun install
+bun run tauri dev      # 開発モードで起動（画面の変更はすぐ反映されます）
+bun run tauri build    # インストーラを作成（macOS は .app/.dmg、Windows は -setup.exe）
+bun run test           # Rust のテストと型チェック
+bun run lint           # ESLint、cargo fmt --check、clippy（CI と同じ）
 ```
 
 作成したインストーラは `src-tauri/target/release/bundle/` に出力されます。
 
-`npm run tauri build` にはアプリ内アップデート用の署名鍵が要ります（`createUpdaterArtifacts` が有効なため）。鍵なしでインストーラだけ作るときは、更新ファイルを作らない設定を足します。
+`bun run tauri build` にはアプリ内アップデート用の署名鍵が要ります（`createUpdaterArtifacts` が有効なため）。鍵なしでインストーラだけ作るときは、更新ファイルを作らない設定を足します。
 
 ```sh
-TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/shelf.key)" npm run tauri build
+TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/shelf.key)" bun run tauri build
 # 鍵なし
 echo '{"bundle":{"createUpdaterArtifacts":false}}' > /tmp/no-updater.json
-npm run tauri build -- --config /tmp/no-updater.json
+bun run tauri build -- --config /tmp/no-updater.json
 ```
 
-開発モード（`npm run tauri dev`）では自動のアップデート確認はしません（トレイの「アップデートを確認…」は動きます）。「ログイン時に起動」も自動ではオンにしません（トレイから手動でオンにすると、開発用のバイナリが登録されるので注意してください）。
+開発モード（`bun run tauri dev`）では自動のアップデート確認はしません（トレイの「アップデートを確認…」は動きます）。「ログイン時に起動」も自動ではオンにしません（トレイから手動でオンにすると、開発用のバイナリが登録されるので注意してください）。
 
 ### 構成
 
@@ -206,7 +206,7 @@ npm run tauri build -- --config /tmp/no-updater.json
 | `src-tauri/tauri.conf.json` | アプリ名・バージョン・ウィンドウ設定・作るインストーラの種類 |
 | `src-tauri/tauri.macos.conf.json` | macOS だけの上書き。棚のウィンドウを透明にして角を丸く描く（配列は丸ごと置き換わるので、ウィンドウ設定を変えるときは両方直す） |
 | `src-tauri/capabilities/default.json` | 画面に許可する操作（権限） |
-| `src-tauri/icons/` | アプリアイコン（`app-icon.svg` から `npx tauri icon` で生成） |
+| `src-tauri/icons/` | アプリアイコン（`app-icon.svg` から `bunx tauri icon` で生成） |
 | `src-tauri/icons/tray/`, `tray-icon.svg`, `src-tauri/src/tray_icon.rs` | メニューバー / タスクトレイの白黒のアイコン。macOS はテンプレート画像（44px）、Windows はタスクバーの明るさに合わせて白か黒（32px）。PNG は `tray-icon.svg` を透明背景で書き出したもの |
 
 アプリの外へファイルをドラッグして出すには OS ネイティブのドラッグ操作が必要なため、[tauri-plugin-drag](https://github.com/crabnebula-dev/drag-rs) を使っています。その下の `drag` クレートは、「移動」のドラッグでコピーも許すように 1 か所だけ直した版を `vendor/drag/` に置き、`[patch.crates-io]` で差し替えています（理由と変更点は `vendor/drag/SHELF_PATCH.md`）。
@@ -220,7 +220,7 @@ npm run tauri build -- --config /tmp/no-updater.json
 ### リリース手順
 
 1. バージョンを上げる（3 か所とも同じ値にします）
-   - `package.json` … `npm version <バージョン> --no-git-tag-version`（`package-lock.json` も更新されます）
+   - `package.json` … `bun pm version <バージョン> --no-git-tag-version`（`bun.lock` には版が無いので、ほかに直す所はありません）
    - `src-tauri/tauri.conf.json` の `version`
    - `src-tauri/Cargo.toml` の `version`（`Cargo.lock` は `cargo update -p shelf` で更新）
 2. [`CHANGELOG.md`](CHANGELOG.md) に `## <バージョン>` の節を書く。この節がそのままリリースの本文になります
@@ -242,7 +242,7 @@ npm run tauri build -- --config /tmp/no-updater.json
 
 インストール済みのアプリは `https://github.com/jazmf-dx/desktop-apps/releases/download/shelf-updater/latest.json` を見ます（`tauri.conf.json` の `plugins.updater.endpoints`）。このリポジトリには他のツールのリリースも並ぶため、image-library のように `releases/latest` は使えません。そこでリリースのたびに、`shelf-updater` という固定のリリース（プレリリース扱い）の `latest.json` を新しい版のものに置き換えています。**`shelf-updater` のリリースとタグは消さないでください**（配布済みのアプリが更新を見つけられなくなります）。
 
-更新ファイルの署名鍵は GitHub Actions の Secrets に置きます（`TAURI_SIGNING_PRIVATE_KEY`：秘密鍵ファイルの中身、`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`：パスワード、なければ空）。鍵は Shelf 専用で（`~/.tauri/shelf.key`）、対応する公開鍵は `tauri.conf.json` の `plugins.updater.pubkey` です。**秘密鍵を失うと配布済みのアプリに更新を届けられなくなる**ので、必ずバックアップを取ってください。鍵の作り直しは `npx @tauri-apps/cli signer generate -w ~/.tauri/shelf.key`（作り直すと、それまでに配布した版には更新が届かなくなります）。
+更新ファイルの署名鍵は GitHub Actions の Secrets に置きます（`TAURI_SIGNING_PRIVATE_KEY`：秘密鍵ファイルの中身、`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`：パスワード、なければ空）。鍵は Shelf 専用で（`~/.tauri/shelf.key`）、対応する公開鍵は `tauri.conf.json` の `plugins.updater.pubkey` です。**秘密鍵を失うと配布済みのアプリに更新を届けられなくなる**ので、必ずバックアップを取ってください。鍵の作り直しは `bunx @tauri-apps/cli signer generate -w ~/.tauri/shelf.key`（作り直すと、それまでに配布した版には更新が届かなくなります）。
 
 ## 今後の候補
 

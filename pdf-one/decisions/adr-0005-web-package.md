@@ -24,7 +24,7 @@ import "@jazmf-dx/pdf-one-web/style.css";
 </div>
 ```
 
-- 入口は `src/web.tsx`。`vite.web.config.ts`（`npm run build:web`）が `web/dist/`（`index.js`、`index.d.ts`、`style.css`、`assets/`）を作る。`web/package.json` が `@jazmf-dx/pdf-one-web`（版は `pdf-one/package.json` と同じ）
+- 入口は `src/web.tsx`。`vite.web.config.ts`（`bun run build:web`）が `web/dist/`（`index.js`、`index.d.ts`、`style.css`、`assets/`）を作る。`web/package.json` が `@jazmf-dx/pdf-one-web`（版は `pdf-one/package.json` と同じ）
 - **`assetsBase`**：パッケージの `assets/`（wasm、Noto Sans JP、pdf.js のワーカー・CMap・標準フォント・JavaScript デコーダ、ライセンス）を置いた URL。置く側が静的ファイルとして配る。サーバーへの通信は、これを読むだけ。wasm-bindgen の JS は `index.js` に入れる（そのため wasm の「既定の場所」を指す `new URL(…, import.meta.url)` は、ビルドで外してエラーにする。ファイルがパッケージの外に勝手にコピーされないように）
 - React 19 は peerDependencies。pdfjs-dist、zustand、lucide-react、@tanstack/react-virtual は `index.js` に入れる
 - 1 ページに 1 つ。文書と設定のストア（zustand）、ホスト、pdf.js の設定はモジュールに 1 つ。アンマウントしても開いた文書は消さない（SPA の画面遷移で、保存していない変更を黙って捨てないため）
@@ -34,7 +34,7 @@ import "@jazmf-dx/pdf-one-web/style.css";
 
 - 画面のルートの要素（`components/Root.tsx`）に class `.pdf-one` を付け、画面の CSS はこの要素に掛ける。ルート自身が `width/height: 100%`。デスクトップでは `html`・`body`・`#root` を 100% にする指定を `src/desktop.css` に分けた（`main.tsx` が読む）
 - パッケージの `style.css` は、`build/postcss-scope.ts`（PostCSS のプラグイン、30 行ほど）で、出来上がった CSS の全セレクタを `.pdf-one` の下に入れる。`:root`・`html`・`body`・`:host` はルート自身に、`*` と `::before` などはルートとその子孫に。`@property` と（名前を変えた）`@keyframes` は外のまま。外に出たセレクタが 1 つでもあればビルドが失敗する
-- **`@layer` は外す**。レイヤーの中の CSS は、レイヤーの外の CSS に必ず負ける。置く側の `button { … }` のような指定（外にある）が、画面のボタンを青く塗ってしまう。`.pdf-one` の下の指定は `.pdf-one button`（優先度が高い）になるので、外すと勝てる。外しても内側の順序は変えない（レイヤーに入っていたものを先に、入っていなかったものを後に置く）。ブラウザでデスクトップ版（`npm run dev`）とパッケージの画面のすべての要素の computed style を比べ、レイヤーを残すと置く側の指定で 209 項目が変わり、外すと 0 になることを確かめた（開いた文書・ダイアログ・右クリックのメニュー。ライト・ダーク）
+- **`@layer` は外す**。レイヤーの中の CSS は、レイヤーの外の CSS に必ず負ける。置く側の `button { … }` のような指定（外にある）が、画面のボタンを青く塗ってしまう。`.pdf-one` の下の指定は `.pdf-one button`（優先度が高い）になるので、外すと勝てる。外しても内側の順序は変えない（レイヤーに入っていたものを先に、入っていなかったものを後に置く）。ブラウザでデスクトップ版（`bun run dev`）とパッケージの画面のすべての要素の computed style を比べ、レイヤーを残すと置く側の指定で 209 項目が変わり、外すと 0 になることを確かめた（開いた文書・ダイアログ・右クリックのメニュー。ライト・ダーク）
 - `@keyframes` は名前がページ全体で共有されるので `pdf-one-` を付ける（`animation` と `--animate-*` の参照も直す）
 - **`rem` は `calc(N * var(--pdf-one-rem))` に変える**。`rem` は置く側の `html` の文字の大きさで、`html { font-size: 62.5% }` のページでは画面が縮み、設定の「文字を大きく」（デスクトップでは `html` の文字の大きさを変える）はページを変えてしまう。`--pdf-one-rem`（既定 16px、大きく 18.4px、さらに大きく 20.8px）は `src/web.css` が持ち、ルートの `data-text` で切り替える。デスクトップは今のまま `html` を変える
 - ルートは、置く側から継承しうる文字の指定（`text-align`、`line-height`、`letter-spacing`…）を自分で決め直す。見出しなど、置く側の CSS が要素名で直接指しうるもの（`h1 { color: red }`）の色とフォントは `inherit` に戻す（`src/web.css`）

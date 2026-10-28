@@ -151,7 +151,7 @@
 - 日付印と文字の印は、画像ではなく Rust で見た目を描く（拡大してもきれい、文字を変えられる）
 - テーマは `index.css` のトークンを `prefers-color-scheme` で切り替える。Platform UI §1 からの逸脱なので ADR-0002（判断 2）
 
-完了条件：UX §11 の代表タスク 1〜6 を合格。Windows の 3 機種（うち 1 台は 1366 × 768・125%）と macOS で印刷できる。`npm test`、`npm run lint`。
+完了条件：UX §11 の代表タスク 1〜6 を合格。Windows の 3 機種（うち 1 台は 1366 × 768・125%）と macOS で印刷できる。`bun run test`、`bun run lint`。
 
 ### 0.3 文字と画像を直す（規模：大）
 
