@@ -67,19 +67,14 @@ GitHub の画面の「Sync fork」でもよい。社内版だけのファイル�
 
 ### 個人版のワークフロー
 
-upstream から来る `.github/workflows/<tool>.yml` は、jazmf-dx でも PR と `main` へのテストに使う（そのまま動かしてよい）。リリースの部分（tag `<tool>-v*` と、Run workflow の `release`）は jazmf-dx では使わない。個人版の更新ファイルに署名する鍵（`TAURI_SIGNING_PRIVATE_KEY`）は、下の「移行」が済んだら jazmf-dx の Secrets から消すので、間違えて動かしても更新ファイルが作れずに失敗する。
+upstream から来る `.github/workflows/<tool>.yml` は、jazmf-dx でも PR と `main` へのテストに使う（そのまま動かしてよい）。リリースの部分（tag `<tool>-v*` と、Run workflow の `release`）は jazmf-dx では使わない。個人版の更新ファイルに署名する鍵（`TAURI_SIGNING_PRIVATE_KEY`）は jazmf-dx に置かないので、間違えて動かしても更新ファイルが作れずに失敗する。
 
 ## 署名の鍵
 
-アプリ内アップデートは、社内版専用の鍵で署名した更新しか受け付けない。公開鍵は各ツールの `tauri.corp.conf.json` の `plugins.updater.pubkey`（5 ツールで同じ鍵）。個人版の鍵とは別のもので、個人版の更新が社内版に入ることはない（逆も同じ）。
+アプリ内アップデートは、社内版専用の鍵で署名した更新しか受け付けない。公開鍵は各ツールの `tauri.corp.conf.json` の `plugins.updater.pubkey`。組織の鍵（公開鍵 ID `4C2C8675C57523B3`）で、5 ツールと jazmf-dx/video-studio の社内版、jazmf-dx/pdf-one で同じ鍵を使う。個人版の鍵とは別のもので、個人版の更新が社内版に入ることはない（逆も同じ）。
 
-最初に一度、鍵を作る：
+鍵は 2026-11 に作った（`bunx @tauri-apps/cli signer generate -w jazmf-corp.key`）。ツールを社内版に足すときは、`tauri.corp.conf.json` の `pubkey` に同じ公開鍵を入れる。
 
-```bash
-bunx @tauri-apps/cli signer generate -w desktop-apps-corp.key
-```
-
-- 出てきた公開鍵（`desktop-apps-corp.key.pub` の中身）を、5 つの `tauri.corp.conf.json` の `pubkey`（`REPLACE_WITH_CORP_PUBLIC_KEY`）に入れて、PR で `main` に入れる。入れるまでは `corp` ワークフローが止まる
 - 秘密鍵とパスワードは、Environment `corp-release` の Secret（`CORP_SIGNING_PRIVATE_KEY`・`CORP_SIGNING_PRIVATE_KEY_PASSWORD`）にだけ置く。Repository secret にはしない
 - `corp-release` は、tag `corp-*` からしか使えないようにする（Settings → Environments → Deployment branches and tags）。ほかのブランチのワークフローからは鍵を読めない
 - 秘密鍵のファイルは手元に残さないか、パスワード管理ツールなど安全な場所に置く。漏れたら、その鍵で署名した更新が全員の PC に入りうる
@@ -113,12 +108,3 @@ bunx @tauri-apps/cli signer generate -w desktop-apps-corp.key
 - 急ぎで番号を上げられないとき：タグに枝番を付ける（`corp-shelf-v0.1.9-2`）。アプリの表示は 0.1.9 のままなので、どちらの版かは控えた SHA-256 で見分ける。アプリ内アップデートは番号が上がらないと届かないので、この版は手で入れ替えてもらう。`corp-publish` は枝番の付いた tag を受け付けない
 
 インストーラはコード署名をしていないので、初回は SmartScreen の警告が出る。
-
-## 移行（一度だけ）
-
-2026-11 までは、このリポジトリが個人版を出していた（配信先 `jazmf-dx/desktop-apps` の `<tool>-updater`、個人版の鍵）。その版を入れた PC は、今もここの `<tool>-updater` を見ている。
-
-1. upstream（hamirilo/workbench）の Secrets に個人版の鍵（`TAURI_SIGNING_PRIVATE_KEY`・`TAURI_SIGNING_PRIVATE_KEY_PASSWORD`。公開鍵 ID `50FEA12A1D8F04D1`）があることを確かめる
-2. 橋渡しの版を出す：upstream で各ツールの版を 1 つ上げ（配信先が hamirilo/workbench になった版）、upstream でリリースする。取り込んだあと、**このリポジトリでも一度だけ**同じ版を個人版のワークフロー（`<tool>.yml` の Run workflow › `release`）でリリースする。ここの `<tool>-updater` を見ている PC はその版に更新され、それからは hamirilo/workbench を見るようになる
-3. 5 ツールとも済んだら、このリポジトリの Secrets から `TAURI_SIGNING_PRIVATE_KEY`・`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` を消す。`<tool>-updater` のリリースと tag は残す（古い版がまだ見ているかもしれない）
-4. 会社の PC で使っている人には、社内版を入れてもらい、個人版をアンインストールしてもらう（ID が違うので、両方入る。設定は引き継がれない）
