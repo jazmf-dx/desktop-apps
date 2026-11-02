@@ -1,0 +1,84 @@
+name: corp-publish
+
+# Hands a work edition release out (docs/CORP.md, "リリース"): run by hand once
+# the installer of the draft release corp-<tool>-v<version> has passed the
+# company's check. It confirms the draft's installer is the file that was
+# checked (its SHA-256), publishes the release, and then puts its latest.json
+# on the fixed release corp-<tool>-updater, which the installed apps read
+# (their plugins.updater.endpoints). From then on every installed copy of the
+# tool's work edition updates itself.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 公開する下書きのリリースの tag（corp-<tool>-v<version>）
+        required: true
+        type: string
+      sha256:
+        description: 検査に出した -setup.exe の SHA-256
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ inputs.tag }}
+      EXPECTED: ${{ inputs.sha256 }}
+    steps:
+      - name: Check the tag and the draft
+        id: meta
+        run: |
+          # A tag with a suffix (corp-<tool>-v<version>-<n>) has the same
+          # version as the one before it, so the apps would not update to it:
+          # it is handed out by hand and not published (docs/CORP.md, "版の番号").
+          if [[ ! "$TAG" =~ ^corp-([a-z0-9-]+)-v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "::error::$TAG は corp-<tool>-v<version> ではない（枝番の付いた版は公開しない）"
+            exit 1
+          fi
+          echo "tool=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          echo "version=${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
+          if [ "$(gh release view "$TAG" --json isDraft -q .isDraft)" != true ]; then
+            echo "::error::$TAG は下書きのリリースではない（公開済みか、ない）"
+            exit 1
+          fi
+
+      - name: Compare the installer with the checked file
+        run: |
+          gh release download "$TAG" -p '*-setup.exe' -p latest.json -D dl
+          actual="$(sha256sum dl/*-setup.exe | cut -d' ' -f1)"
+          expected="$(echo "$EXPECTED" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::下書きの -setup.exe（$actual）が検査に出したもの（$expected）と違う。公開しない"
+            exit 1
+          fi
+          echo "SHA-256 一致: $actual" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish the release
+        run: gh release edit "$TAG" --draft=false --latest=false
+
+      # After the release above, so the installer latest.json points to can
+      # already be downloaded.
+      - name: Put latest.json on corp-<tool>-updater
+        env:
+          TOOL: ${{ steps.meta.outputs.tool }}
+        run: |
+          updater="corp-$TOOL-updater"
+          if ! gh release view "$updater" > /dev/null 2>&1; then
+            gh release create "$updater" --prerelease --latest=false --target main \
+              --title "$TOOL 社内版 アプリ内アップデート用" \
+              --notes "インストール済みの社内版が新しい版を確認するための latest.json を置いています（中身は最新の公開済みの版を指します）。ダウンロードは各版のリリース（corp-$TOOL-v…）から。"
+          fi
+          gh release upload "$updater" dl/latest.json --clobber
+          echo "$updater の latest.json を $TAG にした" >> "$GITHUB_STEP_SUMMARY"

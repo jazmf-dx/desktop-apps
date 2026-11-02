@@ -1,0 +1,35 @@
+name: fork-guard
+
+# jazmf-dx/desktop-apps is hamirilo/workbench (upstream) plus the work
+# edition's own files (docs/CORP.md). Every other file stays as upstream has
+# it, so merging upstream never conflicts. This fails a pull request that
+# changes anything else: make that change in upstream and merge it in instead.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  only-corp-files:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Files that differ from the upstream this branch is based on
+        run: |
+          git fetch --quiet https://github.com/hamirilo/workbench main
+          # The last upstream commit merged in: what this branch should equal
+          # apart from the work edition's files.
+          base=$(git merge-base FETCH_HEAD HEAD)
+          # The work edition's own files (docs/CORP.md, "社内版だけのファイル").
+          allowed='^(\.github/workflows/(corp|corp-publish|fork-guard)\.yml|docs/CORP\.md|[a-z0-9-]+/src-tauri/tauri\.corp\.conf\.json)$'
+          extra=$(git diff --name-only "$base" HEAD | grep -Ev "$allowed" || true)
+          if [ -n "$extra" ]; then
+            echo "::error::upstream（hamirilo/workbench）と同じであるべきファイルが変わっています。変更は upstream に入れてから取り込んでください（docs/CORP.md）"
+            echo "$extra" | sed 's/^/  /'
+            exit 1
+          fi
+          echo "OK: upstream との差は社内版のファイルだけです"

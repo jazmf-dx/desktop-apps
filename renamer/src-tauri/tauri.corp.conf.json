@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Renamer Corp",
+  "identifier": "dev.workbench.renamer.corp",
+  "bundle": {
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "REPLACE_WITH_CORP_PUBLIC_KEY",
+      "endpoints": ["https://github.com/jazmf-dx/desktop-apps/releases/download/corp-renamer-updater/latest.json"]
+    }
+  }
+}

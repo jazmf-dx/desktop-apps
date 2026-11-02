@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Disk Analyzer Corp",
+  "identifier": "dev.workbench.disk-analyzer.corp",
+  "bundle": {
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "REPLACE_WITH_CORP_PUBLIC_KEY",
+      "endpoints": ["https://github.com/jazmf-dx/desktop-apps/releases/download/corp-disk-analyzer-updater/latest.json"]
+    }
+  }
+}

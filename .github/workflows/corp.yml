@@ -1,0 +1,183 @@
+name: corp
+
+# The work edition (docs/CORP.md): a tool's Windows installer built with its
+# <tool>/src-tauri/tauri.corp.conf.json (own name, identifier, update feed and
+# signing key). It is checked by the company's security software before it is
+# handed out, so a corp-<tool>-v<version> tag only creates a draft release.
+# The installed apps see it after the corp-publish workflow, run once the
+# check has passed (docs/CORP.md, "リリース").
+on:
+  push:
+    tags: ["corp-*-v*"]
+
+permissions:
+  contents: read
+
+# A release always finishes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  meta:
+    runs-on: ubuntu-24.04
+    outputs:
+      tool: ${{ steps.meta.outputs.tool }}
+      version: ${{ steps.meta.outputs.version }}
+      name: ${{ steps.meta.outputs.name }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Tool and version from the tag
+        id: meta
+        run: |
+          # corp-<tool>-v<version>, or corp-<tool>-v<version>-<n> when only the
+          # work edition's files changed (docs/CORP.md, "版の番号").
+          if [[ ! "$GITHUB_REF_NAME" =~ ^corp-([a-z0-9-]+)-v([0-9]+\.[0-9]+\.[0-9]+)(-[0-9]+)?$ ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME is not corp-<tool>-v<version>"
+            exit 1
+          fi
+          tool="${BASH_REMATCH[1]}"
+          version="${BASH_REMATCH[2]}"
+          conf="$tool/src-tauri/tauri.corp.conf.json"
+          if [ ! -f "$conf" ]; then
+            echo "::error::$conf がありません（社内版のないツール）"
+            exit 1
+          fi
+          app_version="$(jq -r .version "$tool/src-tauri/tauri.conf.json")"
+          if [ "$version" != "$app_version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match $tool/src-tauri/tauri.conf.json version $app_version"
+            exit 1
+          fi
+          # The installed apps read this tool's fixed release in this
+          # repository; the app derives the release page from it too.
+          feed="https://github.com/$GITHUB_REPOSITORY/releases/download/corp-$tool-updater/latest.json"
+          if [ "$(jq -r '.plugins.updater.endpoints[0]' "$conf")" != "$feed" ]; then
+            echo "::error::$conf の plugins.updater.endpoints は $feed にする"
+            exit 1
+          fi
+          if [ "$(jq -r '.plugins.updater.pubkey' "$conf")" = REPLACE_WITH_CORP_PUBLIC_KEY ]; then
+            echo "::error::$conf の pubkey に社内版の公開鍵を入れる（docs/CORP.md「署名の鍵」）"
+            exit 1
+          fi
+          echo "tool=$tool" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "name=$(jq -r .productName "$conf")" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: meta
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ${{ needs.meta.outputs.tool }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2.9.2
+        with:
+          workspaces: ${{ needs.meta.outputs.tool }}/src-tauri -> target
+          # Restores main's cache; a tag can't save one anyone could use.
+          save-if: false
+      - name: Install Linux deps for Tauri
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx tsc --noEmit
+      # tauri::generate_context! needs the built frontend folder to exist.
+      - run: mkdir -p dist
+      - run: cargo test --manifest-path src-tauri/Cargo.toml
+
+  build:
+    needs: [meta, test]
+    runs-on: windows-latest
+    # The signing key is an environment secret of corp-release, which only
+    # corp-* tags can use (docs/CORP.md, "署名の鍵").
+    environment: corp-release
+    # Needed to create the draft release and upload to it.
+    permissions:
+      contents: write
+    env:
+      TOOL: ${{ needs.meta.outputs.tool }}
+      VERSION: ${{ needs.meta.outputs.version }}
+      NAME: ${{ needs.meta.outputs.name }}
+      # The work edition's own key (not the personal edition's); the public
+      # key is plugins.updater.pubkey in tauri.corp.conf.json.
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.CORP_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.CORP_SIGNING_PRIVATE_KEY_PASSWORD }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ needs.meta.outputs.tool }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2.9.2
+        with:
+          workspaces: ${{ needs.meta.outputs.tool }}/src-tauri -> target
+          save-if: false
+      - run: bun install --frozen-lockfile
+      - name: Build
+        run: |
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "::error::Environment corp-release に CORP_SIGNING_PRIVATE_KEY がありません（docs/CORP.md「署名の鍵」）"
+            exit 1
+          fi
+          bun run tauri build --config src-tauri/tauri.corp.conf.json
+
+      - name: Installer, latest.json and SHA-256
+        run: |
+          shopt -s nullglob
+          mkdir -p "$RUNNER_TEMP/out"
+          exe=(src-tauri/target/release/bundle/nsis/*-setup.exe)
+          if [ ${#exe[@]} -ne 1 ] || [ ! -f "${exe[0]}.sig" ]; then
+            echo "::error::The installer or its .sig is missing"
+            exit 1
+          fi
+          # GitHub turns spaces in uploaded names into dots, and latest.json
+          # would then point at a missing file ("Disk Analyzer Corp_…").
+          file="$(basename "${exe[0]}" | tr ' ' '_')"
+          cp "${exe[0]}" "$RUNNER_TEMP/out/$file"
+          url="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/$file"
+          jq -n \
+            --arg version "$VERSION" \
+            --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --rawfile sig "${exe[0]}.sig" \
+            --arg url "$url" \
+            '{
+              version: $version,
+              notes: "",
+              pub_date: $date,
+              platforms: { "windows-x86_64": { signature: ($sig | rtrimstr("\n")), url: $url } }
+            }' > "$RUNNER_TEMP/out/latest.json"
+          cat "$RUNNER_TEMP/out/latest.json"
+          # What was submitted for the check and what is handed out must be
+          # the same file: corp-publish compares this hash before publishing.
+          (cd "$RUNNER_TEMP/out" && sha256sum "$file" | tee SHA256SUMS.txt) >> "$GITHUB_STEP_SUMMARY"
+
+      # Not seen by the installed apps: they read corp-<tool>-updater, which
+      # corp-publish updates after the check.
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd "$RUNNER_TEMP/out"
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
+            --title "$NAME v$VERSION（社内版）" \
+            --notes "社内版。検査を通ってから corp-publish で公開する（docs/CORP.md）。
+
+          SHA-256: \`$(cut -d' ' -f1 SHA256SUMS.txt)\`" \
+            *-setup.exe latest.json SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: ${{ github.ref_name }}
+          path: ${{ runner.temp }}/out/*
+          if-no-files-found: error

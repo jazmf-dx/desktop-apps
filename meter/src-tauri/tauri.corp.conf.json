@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Meter Corp",
+  "identifier": "dev.workbench.meter.corp",
+  "bundle": {
+    "targets": ["nsis"],
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "REPLACE_WITH_CORP_PUBLIC_KEY",
+      "endpoints": ["https://github.com/jazmf-dx/desktop-apps/releases/download/corp-meter-updater/latest.json"]
+    }
+  }
+}
