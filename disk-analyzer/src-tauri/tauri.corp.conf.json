@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Disk Analyzer Corp",
+  "productName": "Disk Analyzer",
   "identifier": "dev.workbench.disk-analyzer.corp",
   "bundle": {
     "targets": ["nsis"],
