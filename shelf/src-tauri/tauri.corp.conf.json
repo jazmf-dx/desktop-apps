@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Shelf Corp",
+  "productName": "Shelf",
   "identifier": "dev.workbench.shelf.corp",
   "bundle": {
     "targets": ["nsis"],

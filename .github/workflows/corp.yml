@@ -142,7 +142,7 @@ jobs:
             exit 1
           fi
           # GitHub turns spaces in uploaded names into dots, and latest.json
-          # would then point at a missing file ("Disk Analyzer Corp_…").
+          # would then point at a missing file ("Disk Analyzer_…").
           file="$(basename "${exe[0]}" | tr ' ' '_')"
           cp "${exe[0]}" "$RUNNER_TEMP/out/$file"
           url="https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/$file"
@@ -170,7 +170,7 @@ jobs:
         run: |
           cd "$RUNNER_TEMP/out"
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
-            --title "$NAME v$VERSION（社内版）" \
+            --title "$NAME v$VERSION" \
             --notes "社内版。検査を通ってから corp-publish で公開する（docs/CORP.md）。
 
           SHA-256: \`$(cut -d' ' -f1 SHA256SUMS.txt)\`" \

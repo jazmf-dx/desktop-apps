@@ -8,7 +8,7 @@ jazmf-dx/desktop-apps でだけ扱う、会社の PC（主に Windows）向け�
 |---|---|---|
 | 機能 | すべて | 同じ（外している機能はない） |
 | アプリ内アップデート | hamirilo/workbench の `<tool>-updater` から | jazmf-dx/desktop-apps の `corp-<tool>-updater` から。社内版専用の鍵で署名し、検査を通して公開した版だけが届く |
-| 製品名・ID | `Shelf` / `dev.workbench.shelf` など | `Shelf Corp` / `dev.workbench.shelf.corp` など |
+| 製品名・ID | `Shelf` / `dev.workbench.shelf` など | `Shelf`（製品名は個人版と同じ）/ `dev.workbench.shelf.corp` など（ID は別） |
 | インストーラ | macOS の .dmg、Windows の -setup.exe | Windows の -setup.exe だけ |
 | リリースの tag | `<tool>-v<版>` | `corp-<tool>-v<版>` |
 
