@@ -71,9 +71,9 @@ upstream から来る `.github/workflows/<tool>.yml` は、jazmf-dx でも PR �
 
 ## 署名の鍵
 
-アプリ内アップデートは、社内版専用の鍵で署名した更新しか受け付けない。公開鍵は各ツールの `tauri.corp.conf.json` の `plugins.updater.pubkey`。組織の鍵（公開鍵 ID `4C2C8675C57523B3`）で、5 ツールと jazmf-dx/video-studio の社内版、jazmf-dx/pdf-one で同じ鍵を使う。個人版の鍵とは別のもので、個人版の更新が社内版に入ることはない（逆も同じ）。
+アプリ内アップデートは、社内版専用の鍵で署名した更新しか受け付けない。公開鍵は各ツールの `tauri.corp.conf.json` の `plugins.updater.pubkey`。組織の鍵（公開鍵 ID `D35B5FA86D1AB335`）で、5 ツールと jazmf-dx/video-studio の社内版、jazmf-dx/pdf-one で同じ鍵を使う。個人版の鍵とは別のもので、個人版の更新が社内版に入ることはない（逆も同じ）。
 
-鍵は 2026-11 に作った（`bunx @tauri-apps/cli signer generate -w jazmf-corp.key`）。ツールを社内版に足すときは、`tauri.corp.conf.json` の `pubkey` に同じ公開鍵を入れる。
+鍵は 2026-11 に作った（`bunx @tauri-apps/cli signer generate -w jazmf-corp.key`）。最初の鍵（公開鍵 ID `4C2C8675C57523B3`）はパスワードが分からなくなったため、2026-11-05 に作り直した。最初の鍵で署名した社内版は、新しい鍵では更新できないので、手で入れ直してもらう。ツールを社内版に足すときは、`tauri.corp.conf.json` の `pubkey` に同じ公開鍵を入れる。
 
 - 秘密鍵とパスワードは、Environment `corp-release` の Secret（`CORP_SIGNING_PRIVATE_KEY`・`CORP_SIGNING_PRIVATE_KEY_PASSWORD`）にだけ置く。Repository secret にはしない
 - `corp-release` は、tag `corp-*` からしか使えないようにする（Settings → Environments → Deployment branches and tags）。ほかのブランチのワークフローからは鍵を読めない
