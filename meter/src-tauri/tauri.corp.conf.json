@@ -8,7 +8,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDRDMkM4Njc1QzU3NTIzQjMKUldTekkzWEZkWVlzVEhiY2RoK20wN21IQnYxbVovaXBKMmR2bjh1QkwxeTNwQ1FXYmVGaVBDbUMK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQzNUI1RkE4NkQxQUIzMzUKUldRMXN4cHRxRjliMHdSUlp6T0Z5RnNKdlQ2a2FUSm9uYkJqcXBrN2tjdG85YkJsd3pUNUtUaDAK",
       "endpoints": ["https://github.com/jazmf-dx/desktop-apps/releases/download/corp-meter-updater/latest.json"]
     }
   }
