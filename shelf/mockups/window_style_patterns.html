@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shelf ウィンドウ デザイン案</title>
+<style>
+/* ---- tokens (src/styles.css と同じ値をベースにしている) ---- */
+:root{
+  --bg:#f6f7f9; --surface:#fff; --text:#1c1f24; --muted:#6b7280; --border:#e3e6eb; --hover:#eef1f6;
+  --accent:#4a72f0; --accent-soft:rgba(74,114,240,.14); --copy:#2f9e6e; --danger:#e5484d;
+  --page:#dfe3ea; --page-text:#1c1f24; --shadow:0 12px 32px rgba(20,30,50,.18);
+}
+:root[data-theme=dark]{
+  --bg:#1d1f23; --surface:#26292e; --text:#e8eaed; --muted:#9aa0a8; --border:#353941; --hover:#2f333a;
+  --accent:#6d8dff; --accent-soft:rgba(109,141,255,.18); --copy:#4cc38a;
+  --page:#0f1114; --page-text:#e8eaed; --shadow:0 12px 32px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--page);color:var(--page-text);font:14px/1.5 system-ui,-apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI",sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 64px}
+header.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--page) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid color-mix(in srgb,var(--page-text) 12%,transparent)}
+header.top .wrap{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding-top:10px;padding-bottom:10px}
+header.top h1{font-size:15px;margin:0}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav a{font-size:12px;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--page-text) 8%,transparent);text-decoration:none;color:inherit}
+.ctl{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px}
+.seg{display:inline-flex;border-radius:99px;background:color-mix(in srgb,var(--page-text) 10%,transparent);padding:2px}
+.seg button{border:0;background:none;color:inherit;font:inherit;font-size:12px;padding:3px 10px;border-radius:99px;cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+section.pat{scroll-margin-top:80px;margin-top:40px;display:grid;grid-template-columns:320px 1fr;gap:28px;align-items:start}
+@media(max-width:760px){section.pat{grid-template-columns:1fr}}
+.stage{display:grid;place-items:center;padding:28px 16px;border-radius:20px;background:
+  linear-gradient(135deg,#7aa2ff22,#ff9ad522),var(--page);border:1px dashed color-mix(in srgb,var(--page-text) 18%,transparent)}
+h2{margin:0 0 4px;font-size:18px}
+.concept{margin:0 0 10px;color:color-mix(in srgb,var(--page-text) 75%,transparent)}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.pc div{padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--page-text) 6%,transparent);font-size:13px}
+.pc b{display:block;font-size:12px;margin-bottom:2px}
+.spec{font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--page-text) 6%,transparent);white-space:pre-wrap}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:12px}
+th,td{border:1px solid color-mix(in srgb,var(--page-text) 15%,transparent);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:color-mix(in srgb,var(--page-text) 7%,transparent)}
+
+/* ================= Shelf window (shared) ================= */
+.shelf{
+  --r:14px; --pad:6px; --item-r:10px; --thumb-r:8px;
+  position:relative;width:260px;height:420px;display:flex;flex-direction:column;overflow:hidden;
+  background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);
+  font-size:13px;line-height:1.35;user-select:none;cursor:default;
+}
+.shelf svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.shelf button{font:inherit;color:inherit;border:0;background:none;cursor:default}
+.tb{display:flex;align-items:center;justify-content:space-between;height:40px;padding:0 8px 0 14px;flex:none;border-bottom:1px solid var(--border)}
+.tb .t{font-weight:600}.tb .t i{font-style:normal;font-weight:400;color:var(--muted);margin-left:4px}
+.tb .act{display:flex;align-items:center;gap:2px}
+.ib{display:grid;place-items:center;width:28px;height:28px;border-radius:99px;color:var(--muted)}
+.ib:hover,.ib.on{background:var(--hover);color:var(--text)}
+.mode{height:22px;padding:0 9px;margin-right:2px;border-radius:99px;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft)}
+.mode.copy{color:var(--copy);background:color-mix(in srgb,var(--copy) 16%,transparent)}
+.body{position:relative;flex:1;min-height:0}
+.list{list-style:none;margin:0;padding:var(--pad);height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.it{display:flex;align-items:center;gap:10px;padding:6px 6px 6px 8px;border-radius:var(--item-r);border:1px solid transparent;transition:background .12s,transform .25s,opacity .25s,max-height .25s}
+.it:hover{background:var(--hover)}
+.it.sel{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+.it.missing{opacity:.45}
+.it.out{opacity:0;transform:translateX(40px)}
+.th{flex:none;width:36px;height:36px;border-radius:var(--thumb-r);display:grid;place-items:center;background:var(--surface);border:1px solid var(--border);font-size:9px;font-weight:700;color:var(--accent)}
+.th.img{background:linear-gradient(135deg,#6a8cff,#9b6bff);border:0;color:#fff}
+.th.fold{background:none;border:0}
+.th.fold svg{width:32px;height:32px;fill:#f2b84b;stroke:#d99a26;stroke-width:1}
+.tx{flex:1;min-width:0}.nm,.mt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt{font-size:11px;color:var(--muted)}
+.ra{display:none;flex:none;gap:2px}.it:hover .ra{display:flex}
+.ra .ib{width:24px;height:24px}
+.ft{flex:none;padding:var(--pad);border-top:1px solid var(--border)}
+.da{display:flex;align-items:center;justify-content:center;gap:6px;height:32px;border-radius:var(--item-r);background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:12px;cursor:grab}
+.da:hover{color:var(--text);border-color:var(--accent)}
+.empty{position:absolute;inset:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;color:var(--muted);border:2px dashed var(--border);border-radius:calc(var(--item-r) + 4px);pointer-events:none}
+.empty svg{width:40px;height:40px;stroke-width:2;margin-bottom:6px}.empty p{margin:0;font-weight:600;color:var(--text)}.empty small{font-size:11px;padding:0 12px}
+.toast{position:absolute;left:50%;bottom:52px;transform:translate(-50%,8px);background:#1c1f24e6;color:#fff;padding:5px 12px;border-radius:99px;font-size:11px;opacity:0;pointer-events:none;transition:.2s;white-space:nowrap;z-index:5}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* settings popover */
+.pop{position:absolute;right:8px;top:44px;width:230px;z-index:4;padding:12px;border-radius:calc(var(--r) - 2px);background:var(--surface);border:1px solid var(--border);box-shadow:0 10px 28px rgba(0,0,0,.22);opacity:0;transform:translateY(-6px) scale(.98);transform-origin:top right;pointer-events:none;transition:.15s}
+.pop.open{opacity:1;transform:none;pointer-events:auto}
+.pop h4{margin:0 0 8px;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em}
+.pop .row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;font-size:12px}
+.opt{display:flex;gap:2px;padding:2px;border-radius:99px;background:var(--hover);margin-bottom:6px}
+.opt button{flex:1;height:24px;border-radius:99px;font-size:11px;color:var(--muted)}
+.opt button.on{background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.14)}
+.pop p{margin:0 0 8px;font-size:11px;color:var(--muted);line-height:1.4}
+.sw{position:relative;width:32px;height:18px;border-radius:99px;background:var(--border);transition:.15s;flex:none}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.sw.on{background:var(--accent)}.sw.on::after{left:16px}
+
+/* ---- A: ほんのり丸く（現行の延長） ---- */
+.pa{--r:20px;--item-r:12px;--thumb-r:10px;--pad:8px}
+.pa .tb{border-bottom-color:transparent}
+.pa .ft{border-top-color:transparent;padding:8px}
+.pa .da{border-radius:99px;height:34px}
+.pa .mode,.pa .ib{border-radius:99px}
+
+/* ---- B: カードを浮かせる（内側の面を丸く） ---- */
+.pb{--r:26px;--item-r:16px;--thumb-r:12px;--pad:8px;background:var(--hover)}
+.pb .tb{border:0;height:46px;padding:0 12px 0 18px}
+.pb .body{margin:0 8px;border-radius:20px;background:var(--surface);border:1px solid var(--border)}
+.pb .it:hover{background:var(--hover)}
+.pb .th{background:var(--bg)}
+.pb .ft{border:0;padding:8px}
+.pb .da{border-radius:99px;height:36px;background:var(--accent);border-color:transparent;color:#fff}
+.pb .da:hover{color:#fff;filter:brightness(1.08)}
+.pb .empty{border-radius:18px}
+
+/* ---- C: ガラス（半透明＋ぼかし） ---- */
+.pc2{--r:24px;--item-r:14px;--thumb-r:11px;--pad:8px;
+  background:color-mix(in srgb,var(--bg) 62%,transparent);backdrop-filter:blur(22px) saturate(1.5);
+  border:1px solid color-mix(in srgb,#fff 55%,transparent)}
+:root[data-theme=dark] .pc2{border-color:color-mix(in srgb,#fff 14%,transparent)}
+.pc2 .tb{border:0}
+.pc2 .ft{border:0}
+.pc2 .it:hover{background:color-mix(in srgb,var(--surface) 70%,transparent)}
+.pc2 .th{background:color-mix(in srgb,var(--surface) 80%,transparent)}
+.pc2 .da{border-radius:99px;background:color-mix(in srgb,var(--surface) 70%,transparent)}
+.stage.glass{background:linear-gradient(135deg,#6a8cff,#c26bff 55%,#ff9a6b)}
+
+/* ---- D: 大きな丸み＋ゆったり（Yoink 風のしっとり） ---- */
+.pd{--r:30px;--item-r:18px;--thumb-r:14px;--pad:10px}
+.pd .tb{height:48px;border:0;padding:0 12px 0 20px}
+.pd .t{font-size:14px}
+.pd .it{padding:8px 8px 8px 10px;gap:12px}
+.pd .th{width:40px;height:40px}
+.pd .ft{border:0;padding:10px 14px 14px}
+.pd .da{height:38px;border-radius:99px;border-style:dashed}
+.pd .mode{height:24px}
+</style>
+</head>
+<body>
+<header class="top">
+ <div class="wrap">
+  <h1>Shelf ウィンドウ デザイン案</h1>
+  <nav><a href="#p1">A ほんのり</a><a href="#p2">B 浮かせる</a><a href="#p3">C ガラス</a><a href="#p4">D 大きく丸く</a><a href="#cmp">比較</a></nav>
+  <div class="ctl">
+   <span>テーマ <span class="seg" id="themeSeg"><button data-v="light" class="on">ライト</button><button data-v="dark">ダーク</button></span></span>
+   <span>出したあと <span class="seg" id="afterSeg"><button data-v="remove" class="on">棚から外す</button><button data-v="keep">棚に残す</button></span></span>
+  </div>
+ </div>
+</header>
+
+<div class="wrap">
+ <p style="margin-top:20px;color:color-mix(in srgb,var(--page-text) 75%,transparent)">
+  現行は角丸 14px・区切り線あり・行も詰め気味です。4 案とも <b>ウィンドウの角丸を大きく</b>、<b>区切り線を減らし</b>、<b>ボタン類をピル形</b>にしてあります。
+  各ウィンドウは操作できます：行をクリックで選択、行に乗せると出る「↗」で「ドロップして出した」をシミュレート、ヘッダーの歯車で設定。
+  上の「出したあと」と歯車の設定は連動します。
+ </p>
+
+ <section class="pat" id="p1"><div class="stage" data-w="pa"></div><div>
+  <h2>A　ほんのり丸く</h2>
+  <p class="concept">現行の構造のまま、角丸だけ 14→20px に。最小の変更で「柔らかい」に寄せる案。</p>
+  <div class="pc"><div><b>○ メリット</b>変更が CSS 中心で小さい。既存の見た目から違和感なく移行できる</div><div><b>△ デメリット</b>劇的には変わらない。「洗練」感は控えめ</div></div>
+  <div class="spec">ウィンドウ 20px / 行 12px / サムネ 10px
+区切り線: ヘッダー・フッターは非表示
+ボタン: ピル形（99px）</div>
+ </div></section>
+
+ <section class="pat" id="p2"><div class="stage" data-w="pb"></div><div>
+  <h2>B　カードを浮かせる</h2>
+  <p class="concept">外枠は薄いグレー、リストだけ白いカードに載せる二重角丸。下の「まとめてドラッグ」はアクセント色で主役に。</p>
+  <div class="pc"><div><b>○ メリット</b>入れ子の丸みで一気に「アプリらしく」なる。階層が明快</div><div><b>△ デメリット</b>内側に余白ができるぶん、リストの有効幅が約 16px 減る</div></div>
+  <div class="spec">ウィンドウ 26px / リスト面 20px / 行 16px
+外側: --hover 色、リスト面: --surface
+フッターのボタン: accent 塗り</div>
+ </div></section>
+
+ <section class="pat" id="p3"><div class="stage glass" data-w="pc2"></div><div>
+  <h2>C　ガラス</h2>
+  <p class="concept">半透明＋背景ぼかし。背景のデスクトップが透けて、右端に浮かぶ軽い道具に見える。</p>
+  <div class="pc"><div><b>○ メリット</b>いちばん洗練された印象。画面を圧迫しない</div><div><b>△ デメリット</b>macOS は vibrancy／Windows は Acrylic が別途必要で実装が重い。背景次第で文字が読みにくい</div></div>
+  <div class="spec">ウィンドウ 24px / 行 14px
+背景: 62% 不透明 + blur(22px)
+※ 実装は Tauri の window effects（OS ごとに差）</div>
+ </div></section>
+
+ <section class="pat" id="p4"><div class="stage" data-w="pd"></div><div>
+  <h2>D　大きく丸く・ゆったり</h2>
+  <p class="concept">角丸 30px、行間と余白を広げ、フッターは点線のドロップ枠風に。Yoink に近いしっとりした印象。</p>
+  <div class="pc"><div><b>○ メリット</b>柔らかさが最も強い。操作対象が大きくて押しやすい</div><div><b>△ デメリット</b>1 画面に載る件数が減る（約 6→5 件）。角が大きいぶん四隅の内容が詰まりやすい</div></div>
+  <div class="spec">ウィンドウ 30px / 行 18px / サムネ 40px
+ヘッダー 48px、行の余白 +2px
+区切り線なし</div>
+ </div></section>
+
+ <section id="cmp" style="margin-top:48px;scroll-margin-top:80px">
+  <h2>比較</h2>
+  <table>
+   <tr><th></th><th>A ほんのり</th><th>B 浮かせる</th><th>C ガラス</th><th>D 大きく丸く</th></tr>
+   <tr><th>柔らかさ</th><td>★★☆</td><td>★★★</td><td>★★★</td><td>★★★★</td></tr>
+   <tr><th>情報量</th><td>現行と同じ</td><td>やや減</td><td>現行と同じ</td><td>減</td></tr>
+   <tr><th>実装コスト</th><td>小（CSS のみ）</td><td>小〜中（CSS＋HTML 1 枚）</td><td>大（OS 別の透過効果）</td><td>小（CSS のみ）</td></tr>
+   <tr><th>両 OS で同じ見た目</th><td>◎</td><td>◎</td><td>△</td><td>◎</td></tr>
+  </table>
+  <p><b>おすすめ：B をベースに、角丸だけ D 寄り（26→28px）</b>。CSS だけで両 OS 同じ見た目にでき、洗練されて見えるわりにコストが低いです。C は見栄えは良いものの、Windows 10 では角が四角になる制約もあり、後回しが妥当です。</p>
+  <h2 style="margin-top:24px">「出したあと」の設定について</h2>
+  <p>いまもトレイのメニューに「出したら棚から外す」「出したら棚を隠す」があります（既定はどちらもオン）。モックは<b>ウィンドウ内の歯車からも同じ設定を変えられる</b>形にしました。実装するなら、トレイのチェックと同じ <code>settings.json</code> の <code>removeAfterUse</code> / <code>hideAfterUse</code> を共有し、歯車は UI を足すだけで済みます。</p>
+ </section>
+</div>
+
+<script>
+const ITEMS=[
+ {n:'photo.png',m:'4.0 KB · samples',k:'img'},
+ {n:'見積書_2026.pdf',m:'2.3 MB · samples',k:'PDF'},
+ {n:'資料フォルダ',m:'フォルダ · samples',k:'fold'},
+ {n:'data.xlsx',m:'51 KB · samples',k:'XLSX'},
+ {n:'memo.txt',m:'3 B · samples',k:'TXT'},
+ {n:'old.zip',m:'見つかりません',k:'ZIP',missing:1},
+];
+const FOLDER='<svg viewBox="0 0 32 32"><path d="M3 9a2 2 0 0 1 2-2h7l3 3h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+const IMG='<svg viewBox="0 0 16 16" style="width:18px;height:18px"><rect x="2.5" y="3" width="11" height="10" rx="2"/><circle cx="6" cy="6.5" r="1"/><path d="M3 12l3.5-3 2.5 2 2-1.5 2 2"/></svg>';
+const state={after:'remove',theme:'light'};
+const wins=[];
+
+function build(host){
+  const cls=host.dataset.w;
+  host.innerHTML=`
+  <div class="shelf ${cls}">
+   <header class="tb"><span class="t">Shelf<i class="cnt"></i></span>
+    <div class="act">
+     <button class="mode">移動</button>
+     <button class="ib" title="棚を空にする"><svg viewBox="0 0 16 16"><path d="M3 4h10M6.5 4V2.75h3V4M4.5 4l.6 9h5.8l.6-9"/></svg></button>
+     <button class="ib gear" title="設定"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2"/><path d="M8 1.8v1.6M8 12.6v1.6M1.8 8h1.6M12.6 8h1.6M3.6 3.6l1.1 1.1M11.3 11.3l1.1 1.1M3.6 12.4l1.1-1.1M11.3 4.7l1.1-1.1"/></svg></button>
+     <button class="ib" title="隠す"><svg viewBox="0 0 16 16"><path d="M4 8h8"/></svg></button>
+    </div></header>
+   <div class="body"><ul class="list"></ul>
+    <div class="empty"><svg viewBox="0 0 48 48"><path d="M24 8v22M15 21l9 9 9-9M8 34v6h32v-6"/></svg><p>ここにファイルをドロップ</p><small>棚が隠れているときは、ファイルを画面の右端まで持っていくと開きます</small></div>
+   </div>
+   <footer class="ft"><div class="da"><svg viewBox="0 0 16 16"><path d="M3 5h10M3 8h10M3 11h10"/></svg><span class="dal"></span></div></footer>
+   <div class="toast"></div>
+   <div class="pop">
+    <h4>出したあと</h4>
+    <div class="opt"><button data-v="remove">棚から外す</button><button data-v="keep">棚に残す</button></div>
+    <p class="hint"></p>
+    <div class="row"><span>出したら棚を隠す</span><span class="sw hide on"></span></div>
+    <div class="row"><span>ドラッグの動作</span><span class="mode copy" style="margin:0;cursor:default">移動</span></div>
+   </div>
+  </div>`;
+  const root=host.firstElementChild, list=root.querySelector('.list');
+  const w={root,items:ITEMS.map(x=>({...x})),sel:new Set(),copy:false};
+  wins.push(w);
+  const $=s=>root.querySelector(s);
+  const toast=t=>{const e=$('.toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1600)};
+  function render(){
+    list.innerHTML='';
+    w.items.forEach((x,i)=>{
+      const li=document.createElement('li');
+      li.className='it'+(w.sel.has(i)?' sel':'')+(x.missing?' missing':'');
+      const th=x.k==='fold'?`<div class="th fold">${FOLDER}</div>`:x.k==='img'?`<div class="th img">${IMG}</div>`:`<div class="th">${x.k}</div>`;
+      li.innerHTML=`${th}<div class="tx"><div class="nm">${x.n}</div><div class="mt">${x.m}</div></div>
+        <div class="ra"><button class="ib" data-a="out" title="ここから出す（ドロップのシミュレート）"><svg viewBox="0 0 16 16"><path d="M6 3H3.5v9.5H13V10M8 8l5-5M9.5 3H13v3.5"/></svg></button>
+        <button class="ib" data-a="rm" title="棚から外す"><svg viewBox="0 0 16 16"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7"/></svg></button></div>`;
+      li.onclick=e=>{
+        const a=e.target.closest('[data-a]')?.dataset.a;
+        if(a==='rm'){w.items.splice(i,1);w.sel.clear();render();return}
+        if(a==='out'){drop(i);return}
+        e.metaKey||e.ctrlKey?(w.sel.has(i)?w.sel.delete(i):w.sel.add(i)):(w.sel=new Set(w.sel.has(i)&&w.sel.size===1?[]:[i]));
+        render();
+      };
+      list.appendChild(li);
+    });
+    const n=w.items.length;
+    $('.cnt').textContent=n?n:'';
+    $('.dal').textContent=w.sel.size?`${w.sel.size} 件まとめてドラッグ`:`${n} 件まとめてドラッグ`;
+    $('.empty').style.display=n?'none':'flex';
+    $('.ft').style.display=n?'':'none';
+  }
+  function drop(i){
+    const el=list.children[i], x=w.items[i];
+    if(state.after==='remove'){
+      el.classList.add('out');
+      setTimeout(()=>{const k=w.items.indexOf(x);w.items.splice(k,1);w.sel.clear();render();
+        toast(w.items.length?'「'+x.n+'」を出しました':'出し終えました。棚は自動で隠れます')},260);
+    }else{toast('「'+x.n+'」を出しました（棚に残します）')}
+  }
+  $('.mode').onclick=e=>{w.copy=!w.copy;e.target.textContent=w.copy?'コピー':'移動';e.target.classList.toggle('copy',w.copy);root.querySelector('.pop .mode').textContent=e.target.textContent};
+  $('.ib[title="棚を空にする"]').onclick=()=>{w.items=[];w.sel.clear();render()};
+  $('.ib[title="隠す"]').onclick=()=>toast('隠しました（実機ではウィンドウが消えます）');
+  $('.gear').onclick=()=>{$('.pop').classList.toggle('open');$('.gear').classList.toggle('on')};
+  root.querySelectorAll('.opt button').forEach(b=>b.onclick=()=>setAfter(b.dataset.v));
+  $('.sw.hide').onclick=e=>e.target.classList.toggle('on');
+  $('.empty').onclick=null;
+  w.render=render; w.sync=()=>{
+    root.querySelectorAll('.opt button').forEach(b=>b.classList.toggle('on',b.dataset.v===state.after));
+    $('.hint').textContent=state.after==='remove'?'ドロップしたファイルは棚から取り除かれます（ファイル自体は消えません）。':'ドロップしたあとも棚にファイルが残ります。不要なものは × で外します。';
+  };
+  render(); w.sync();
+}
+function setAfter(v){state.after=v;wins.forEach(w=>w.sync());document.querySelectorAll('#afterSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
+document.querySelectorAll('[data-w]').forEach(build);
+document.querySelectorAll('#afterSeg button').forEach(b=>b.onclick=()=>setAfter(b.dataset.v));
+document.querySelectorAll('#themeSeg button').forEach(b=>b.onclick=()=>{
+  document.documentElement.dataset.theme=b.dataset.v;
+  document.querySelectorAll('#themeSeg button').forEach(x=>x.classList.toggle('on',x===b));
+});
+</script>
+</body>
+</html>
