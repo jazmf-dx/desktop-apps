@@ -83,6 +83,17 @@ th{background:color-mix(in srgb,var(--page-text) 7%,transparent)}
 .toast{position:absolute;left:50%;bottom:52px;transform:translate(-50%,8px);background:#1c1f24e6;color:#fff;padding:5px 12px;border-radius:99px;font-size:11px;opacity:0;pointer-events:none;transition:.2s;white-space:nowrap;z-index:5}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* scrollbar: 細く・丸く・ふだんは薄く（全案共通） */
+.list{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--muted) 40%,transparent) transparent}
+.list::-webkit-scrollbar{width:12px}
+.list::-webkit-scrollbar-track{background:transparent;margin:6px 0}
+.list::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--muted) 35%,transparent);border-radius:99px;border:4px solid transparent;background-clip:content-box}
+.list::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--muted) 65%,transparent);background-clip:content-box}
+.stage.nofit .list{scrollbar-width:auto}
+.stage.nofit .list::-webkit-scrollbar{width:15px}
+.stage.nofit .list::-webkit-scrollbar-track{background:var(--hover);margin:0}
+.stage.nofit .list::-webkit-scrollbar-thumb{background:#9aa0a8;border-radius:0;border:0}
+
 /* settings popover */
 .pop{position:absolute;right:8px;top:44px;width:230px;z-index:4;padding:12px;border-radius:calc(var(--r) - 2px);background:var(--surface);border:1px solid var(--border);box-shadow:0 10px 28px rgba(0,0,0,.22);opacity:0;transform:translateY(-6px) scale(.98);transform-origin:top right;pointer-events:none;transition:.15s}
 .pop.open{opacity:1;transform:none;pointer-events:auto}
@@ -104,11 +115,11 @@ th{background:color-mix(in srgb,var(--page-text) 7%,transparent)}
 .pa .mode,.pa .ib{border-radius:99px}
 
 /* ---- B: カードを浮かせる（内側の面を丸く） ---- */
-.pb{--r:26px;--item-r:16px;--thumb-r:12px;--pad:8px;background:var(--hover)}
+.pb{height:430px;--r:26px;--item-r:16px;--thumb-r:12px;--pad:8px;background:var(--hover)}
 .pb .tb{border:0;height:46px;padding:0 12px 0 18px}
 .pb .body{margin:0 8px;border-radius:20px;background:var(--surface);border:1px solid var(--border)}
 .pb .it:hover{background:var(--hover)}
-.pb .th{background:var(--bg)}
+.pb .th:not(.img):not(.fold){background:var(--bg)}
 .pb .ft{border:0;padding:8px}
 .pb .da{border-radius:99px;height:36px;background:var(--accent);border-color:transparent;color:#fff}
 .pb .da:hover{color:#fff;filter:brightness(1.08)}
@@ -122,12 +133,12 @@ th{background:color-mix(in srgb,var(--page-text) 7%,transparent)}
 .pc2 .tb{border:0}
 .pc2 .ft{border:0}
 .pc2 .it:hover{background:color-mix(in srgb,var(--surface) 70%,transparent)}
-.pc2 .th{background:color-mix(in srgb,var(--surface) 80%,transparent)}
+.pc2 .th:not(.img):not(.fold){background:color-mix(in srgb,var(--surface) 80%,transparent)}
 .pc2 .da{border-radius:99px;background:color-mix(in srgb,var(--surface) 70%,transparent)}
 .stage.glass{background:linear-gradient(135deg,#6a8cff,#c26bff 55%,#ff9a6b)}
 
 /* ---- D: 大きな丸み＋ゆったり（Yoink 風のしっとり） ---- */
-.pd{--r:30px;--item-r:18px;--thumb-r:14px;--pad:10px}
+.pd{height:490px;--r:30px;--item-r:18px;--thumb-r:14px;--pad:10px}
 .pd .tb{height:48px;border:0;padding:0 12px 0 20px}
 .pd .t{font-size:14px}
 .pd .it{padding:8px 8px 8px 10px;gap:12px}
@@ -144,6 +155,8 @@ th{background:color-mix(in srgb,var(--page-text) 7%,transparent)}
   <nav><a href="#p1">A ほんのり</a><a href="#p2">B 浮かせる</a><a href="#p3">C ガラス</a><a href="#p4">D 大きく丸く</a><a href="#cmp">比較</a></nav>
   <div class="ctl">
    <span>テーマ <span class="seg" id="themeSeg"><button data-v="light" class="on">ライト</button><button data-v="dark">ダーク</button></span></span>
+   <span>件数 <span class="seg" id="countSeg"><button data-v="6" class="on">6 件</button><button data-v="12">12 件</button></span></span>
+   <span>スクロールバー <span class="seg" id="sbSeg"><button data-v="slim" class="on">細い案</button><button data-v="native">OS 標準</button></span></span>
    <span>出したあと <span class="seg" id="afterSeg"><button data-v="remove" class="on">棚から外す</button><button data-v="keep">棚に残す</button></span></span>
   </div>
  </div>
@@ -215,10 +228,16 @@ const ITEMS=[
  {n:'data.xlsx',m:'51 KB · samples',k:'XLSX'},
  {n:'memo.txt',m:'3 B · samples',k:'TXT'},
  {n:'old.zip',m:'見つかりません',k:'ZIP',missing:1},
+ {n:'会議メモ_1104.docx',m:'38 KB · samples',k:'DOC'},
+ {n:'screenshot_01.png',m:'1.2 MB · samples',k:'img'},
+ {n:'請求書一覧.csv',m:'12 KB · samples',k:'CSV'},
+ {n:'企画書_v3.pptx',m:'5.8 MB · samples',k:'PPT'},
+ {n:'素材',m:'フォルダ · samples',k:'fold'},
+ {n:'readme.md',m:'2 KB · samples',k:'MD'},
 ];
 const FOLDER='<svg viewBox="0 0 32 32"><path d="M3 9a2 2 0 0 1 2-2h7l3 3h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
 const IMG='<svg viewBox="0 0 16 16" style="width:18px;height:18px"><rect x="2.5" y="3" width="11" height="10" rx="2"/><circle cx="6" cy="6.5" r="1"/><path d="M3 12l3.5-3 2.5 2 2-1.5 2 2"/></svg>';
-const state={after:'remove',theme:'light'};
+const state={after:'remove',theme:'light',count:6};
 const wins=[];
 
 function build(host){
@@ -246,7 +265,7 @@ function build(host){
    </div>
   </div>`;
   const root=host.firstElementChild, list=root.querySelector('.list');
-  const w={root,items:ITEMS.map(x=>({...x})),sel:new Set(),copy:false};
+  const w={root,items:ITEMS.slice(0,state.count).map(x=>({...x})),sel:new Set(),copy:false};
   wins.push(w);
   const $=s=>root.querySelector(s);
   const toast=t=>{const e=$('.toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1600)};
@@ -298,6 +317,9 @@ function build(host){
 function setAfter(v){state.after=v;wins.forEach(w=>w.sync());document.querySelectorAll('#afterSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
 document.querySelectorAll('[data-w]').forEach(build);
 document.querySelectorAll('#afterSeg button').forEach(b=>b.onclick=()=>setAfter(b.dataset.v));
+function seg(id,fn){document.querySelectorAll(id+' button').forEach(b=>b.onclick=()=>{document.querySelectorAll(id+' button').forEach(x=>x.classList.toggle('on',x===b));fn(b.dataset.v)})}
+seg('#countSeg',v=>{state.count=+v;wins.forEach(w=>{w.items=ITEMS.slice(0,state.count).map(x=>({...x}));w.sel.clear();w.render();w.root.querySelector('.list').scrollTop=0})});
+seg('#sbSeg',v=>document.querySelectorAll('.stage').forEach(s=>s.classList.toggle('nofit',v==='native')));
 document.querySelectorAll('#themeSeg button').forEach(b=>b.onclick=()=>{
   document.documentElement.dataset.theme=b.dataset.v;
   document.querySelectorAll('#themeSeg button').forEach(x=>x.classList.toggle('on',x===b));
