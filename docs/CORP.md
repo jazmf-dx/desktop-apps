@@ -36,7 +36,7 @@ GitHub の画面に出る「This branch is N commits ahead of hamirilo/workbench
 社内版のために置くのは、次の新しいファイルだけにする。
 
 - `<tool>/src-tauri/tauri.corp.conf.json`：製品名・ID・インストーラの種類（NSIS だけ）、updater の配信先（`corp-<tool>-updater`）と公開鍵を社内版のものにする
-- `.github/workflows/corp.yml`：tag `corp-<tool>-v<版>` で、テストとビルドをして、下書きのリリースを作る
+- `.github/workflows/corp.yml`：tag `corp-<tool>-v<版>` で、テストとビルドをして、下書きのリリースを作る。Run workflow で動かすと、その tag を作るところから行う
 - `.github/workflows/corp-publish.yml`：検査を通った下書きを公開し、`corp-<tool>-updater` の `latest.json` を差し替える
 - `.github/workflows/fork-guard.yml`：PR で、upstream との差がこれらのファイルだけかを確かめる
 - `docs/CORP.md`：この文書
@@ -83,8 +83,11 @@ upstream から来る `.github/workflows/<tool>.yml` は、jazmf-dx でも PR �
 ## リリース
 
 1. upstream を取り込む（上の手順）
-2. 個人版と同じ番号でタグを付ける：`git tag corp-shelf-vX.Y.Z && git push origin corp-shelf-vX.Y.Z`
-3. GitHub Actions の `corp` ワークフローが、tag と `tauri.conf.json` の版の一致・配信先・公開鍵を確かめ、テストし、Windows のインストーラを作って、**下書きのリリース** `corp-shelf-vX.Y.Z` に添付する
+2. Actions › **corp** › **Run workflow** で、Branch は `main` のまま、ツール（`shelf` など）を選んで実行する
+   - main の `shelf/src-tauri/tauri.conf.json` の版から tag `corp-shelf-vX.Y.Z` を main に作り、その tag で `corp` ワークフローをもう一度動かす（ビルドは tag の上で動く。署名の鍵は `corp-*` の tag からしか読めないため）
+   - その tag がもうあれば何もせずに失敗する。upstream を取り込んで版を上げてから動かす
+   - tag を手で付けて push してもよい（`git fetch origin && git tag corp-shelf-vX.Y.Z origin/main && git push origin corp-shelf-vX.Y.Z`）。枝番を付けるとき（下の「版の番号」）はこちら
+3. tag の上の `corp` ワークフローが、tag と `tauri.conf.json` の版の一致・配信先・公開鍵を確かめ、テストし、Windows のインストーラを作って、**下書きのリリース** `corp-shelf-vX.Y.Z` に添付する
    - 添付されるのは `-setup.exe`・`latest.json`・`SHA256SUMS.txt`。ハッシュは実行のサマリーとリリースの本文にも出る
    - 下書きのうちは、アプリ内アップデートからは見えない
 4. 下書きのリリースから `-setup.exe` を取り、検査に提出する。そのときに SHA-256 を控える
