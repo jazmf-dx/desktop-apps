@@ -6,9 +6,21 @@ name: corp
 # handed out, so a corp-<tool>-v<version> tag only creates a draft release.
 # The installed apps see it after the corp-publish workflow, run once the
 # check has passed (docs/CORP.md, "リリース").
+#
+# Run workflow on main does the tagging: it puts corp-<tool>-v<version>
+# (the version in the tool's tauri.conf.json) on main and runs this workflow
+# again on that tag. The build always runs on the tag, as the signing key's
+# environment only accepts corp-* tags.
 on:
   push:
     tags: ["corp-*-v*"]
+  workflow_dispatch:
+    inputs:
+      tool:
+        description: リリースするツール（main の tauri.conf.json の版で corp-<tool>-v<版> を作る）
+        required: true
+        type: choice
+        options: [shelf, clip, meter, renamer, disk-analyzer]
 
 permissions:
   contents: read
@@ -19,7 +31,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Run workflow on main: tag, then hand over to a run on the tag. A tag made
+  # with the workflow's token starts no push run of its own, so the build
+  # runs once.
+  tag:
+    if: github.event_name == 'workflow_dispatch' && github.ref_type == 'branch'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TOOL: ${{ inputs.tool }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Tag main and run on the tag
+        run: |
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "::error::main から動かす（いまは $GITHUB_REF_NAME）"
+            exit 1
+          fi
+          if [ ! -f "$TOOL/src-tauri/tauri.corp.conf.json" ]; then
+            echo "::error::$TOOL/src-tauri/tauri.corp.conf.json がありません（社内版のないツール）"
+            exit 1
+          fi
+          version="$(jq -r .version "$TOOL/src-tauri/tauri.conf.json")"
+          tag="corp-$TOOL-v$version"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "::error::$tag はもうある。upstream を取り込んで版を上げてから動かす（docs/CORP.md「版の番号」）"
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA" > /dev/null
+          gh workflow run corp.yml --ref "$tag" -f tool="$TOOL"
+          run_url="https://github.com/$GITHUB_REPOSITORY/actions/workflows/corp.yml?query=branch%3A$tag"
+          echo "$tag を $GITHUB_SHA に作り、その tag でビルドを始めた：$run_url" | tee -a "$GITHUB_STEP_SUMMARY"
+
   meta:
+    # On the tag only: a push of the tag, or the run the tag job starts.
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-24.04
     outputs:
       tool: ${{ steps.meta.outputs.tool }}
