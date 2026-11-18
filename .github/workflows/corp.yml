@@ -20,7 +20,7 @@ on:
         description: リリースするツール（main の tauri.conf.json の版で corp-<tool>-v<版> を作る）
         required: true
         type: choice
-        options: [shelf, clip, meter, renamer, disk-analyzer]
+        options: [shelf, clip, meter, renamer, disk-analyzer, markdown-viewer]
 
 permissions:
   contents: read
