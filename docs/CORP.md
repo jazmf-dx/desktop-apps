@@ -2,7 +2,7 @@
 
 jazmf-dx/desktop-apps でだけ扱う、会社の PC（主に Windows）向けのビルド。中身は hamirilo/workbench（upstream）と同じコードで、ツールごとに重ねる設定ファイル（`<tool>/src-tauri/tauri.corp.conf.json`）で名前・ID・更新の配信先・署名の鍵を社内版のものにしている。
 
-対象は upstream にある 5 ツール（Shelf・Clip・Meter・Renamer・Disk Analyzer）。大きいアプリは別のリポジトリにある（Video Studio の社内版は jazmf-dx/video-studio、PDF One は jazmf-dx/pdf-one）。
+対象は upstream にある 6 ツール（Shelf・Clip・Meter・Renamer・Disk Analyzer・Markdown Viewer）。大きいアプリは別のリポジトリにある（Video Studio の社内版は jazmf-dx/video-studio、PDF One は jazmf-dx/pdf-one）。
 
 | | 個人版（upstream） | 社内版 |
 |---|---|---|
@@ -71,7 +71,7 @@ upstream から来る `.github/workflows/<tool>.yml` は、jazmf-dx でも PR �
 
 ## 署名の鍵
 
-アプリ内アップデートは、社内版専用の鍵で署名した更新しか受け付けない。公開鍵は各ツールの `tauri.corp.conf.json` の `plugins.updater.pubkey`。組織の鍵（公開鍵 ID `D35B5FA86D1AB335`）で、5 ツールと jazmf-dx/video-studio の社内版、jazmf-dx/pdf-one で同じ鍵を使う。個人版の鍵とは別のもので、個人版の更新が社内版に入ることはない（逆も同じ）。
+アプリ内アップデートは、社内版専用の鍵で署名した更新しか受け付けない。公開鍵は各ツールの `tauri.corp.conf.json` の `plugins.updater.pubkey`。組織の鍵（公開鍵 ID `D35B5FA86D1AB335`）で、6 ツールと jazmf-dx/video-studio の社内版、jazmf-dx/pdf-one で同じ鍵を使う。個人版の鍵とは別のもので、個人版の更新が社内版に入ることはない（逆も同じ）。
 
 鍵は 2026-11 に作った（`bunx @tauri-apps/cli signer generate -w jazmf-corp.key`）。最初の鍵（公開鍵 ID `4C2C8675C57523B3`）はパスワードが分からなくなったため、2026-11-05 に作り直した。最初の鍵で署名した社内版は、新しい鍵では更新できないので、手で入れ直してもらう。ツールを社内版に足すときは、`tauri.corp.conf.json` の `pubkey` に同じ公開鍵を入れる。
 
